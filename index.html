@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FAF8F4">
-<meta name="description" content="接案收入記錄：排班月曆、收入統計與撥款日提醒，資料只存在你的裝置。">
+<meta name="description" content="接案收入記錄：排班月曆、收入統計與入帳記錄，資料只存在你的裝置。">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -952,7 +952,6 @@ function viewMore() {
     '<button class="it" data-a="payments"><span class="f">收款紀錄</span><span class="muted" style="font-size:13px">' + db.payments.length + ' 筆</span>' + I.r + '</button>' +
     '<div class="it" style="padding:10px 0"><span class="f">外觀</span><div class="seg sm" style="width:220px"><button class="' + ((db.settings.theme || 'auto') === 'auto' ? 'on' : '') + '" data-a="settheme" data-v="auto">跟隨系統</button><button class="' + (db.settings.theme === 'light' ? 'on' : '') + '" data-a="settheme" data-v="light">淺色</button><button class="' + (db.settings.theme === 'dark' ? 'on' : '') + '" data-a="settheme" data-v="dark">深色</button></div></div>' +
     '<button class="it" data-a="bigtoggle"><span class="f">字體放大</span><span class="muted" style="font-size:13px">' + (db.settings.big ? '已開' : '關') + '</span></button>' +
-    '<button class="it" data-a="ical"><span class="f">撥款日提醒</span><span class="muted" style="font-size:13px">加到手機行事曆</span>' + I.r + '</button>' +
     '<button class="it" data-a="backup"><span class="f">備份與匯入</span><span class="muted" style="font-size:13px">匯出、匯入、範例</span>' + I.r + '</button></div>' +
     '<p class="muted" style="font-size:12px;margin-top:20px">資料只存在這台裝置的瀏覽器裡，不會上傳。換手機或清除瀏覽器前，請先匯出備份。</p>';
   return h;
@@ -1008,7 +1007,7 @@ function closeSheet() { document.body.classList.remove('has-sheet'); ui.sheet = 
 function renderSheet(keep, anim) {
   const el = $('#sheet'), old = el.querySelector('.sheet'), top = keep && old ? old.scrollTop : 0;
   if (!ui.sheet) { el.innerHTML = ''; return; }
-  const parts = ui.sheet === 'log' ? sheetLog() : ui.sheet === 'case' ? sheetCase() : ui.sheet === 'day' ? sheetDay() : ui.sheet === 'payedit' ? sheetPayEdit() : ui.sheet === 'sources' ? sheetSources() : ui.sheet === 'payments' ? sheetPayments() : ui.sheet === 'rates' ? sheetRates() : ui.sheet === 'ical' ? sheetIcal() : sheetBackup();
+  const parts = ui.sheet === 'log' ? sheetLog() : ui.sheet === 'case' ? sheetCase() : ui.sheet === 'day' ? sheetDay() : ui.sheet === 'payedit' ? sheetPayEdit() : ui.sheet === 'sources' ? sheetSources() : ui.sheet === 'payments' ? sheetPayments() : ui.sheet === 'rates' ? sheetRates() : sheetBackup();
   const na = keep ? ' style="animation:none"' : '';
   el.innerHTML = '<div class="scrim" data-a="close"' + na + '><div class="sheet' + (keep && !anim ? ' still' : '') + '" role="dialog" aria-modal="true" aria-label="' + esc(parts.label || '') + '"' + na + '>' +
     '<div class="sh-head' + (top > 4 ? ' line' : '') + '"><div class="grab"></div>' + parts.head + '</div>' + parts.body + (parts.foot ? '<div class="sh-foot">' + parts.foot + '</div>' : '') + '</div></div>';
@@ -1316,25 +1315,6 @@ function sheetBackup() {
   return { label: '備份與匯入', head: headRow('', '備份與匯入'), body: b };
 }
 
-function icalList() {
-  const t = todayD(), to = addD(t, 90), out = [];
-  for (const c of db.cases) if (c.active) for (const p of payDates(c, t, to)) { const pa = period(c, p); if (pa.amount > 0) out.push({ c, ds: ymd(p), amt: pa.amount }); }
-  return out.sort((a, b) => a.ds < b.ds ? -1 : a.ds > b.ds ? 1 : 0);
-}
-function gcalUrl(it) {
-  const d8 = it.ds.replace(/-/g, ''), nx = ymd(addD(pd(it.ds), 1)).replace(/-/g, '');
-  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent('撥款日 ' + it.c.name + ' 約 NT$ ' + money(it.amt)) + '&dates=' + d8 + '/' + nx;
-}
-function sheetIcal() {
-  const L = icalList();
-  let b = '<p class="muted" style="font-size:13px;margin-top:4px">網頁 App 沒辦法直接寫入手機行事曆，也不能主動推播通知。下面是最接近的做法：點每一筆，會開啟 Google 日曆並帶入日期，按儲存就會出現在手機的日曆上（手機有登入 Google 帳號才會同步）。</p>';
-  if (!L.length) b += '<div class="muted" style="margin-top:14px">未來 90 天沒有撥款日</div>';
-  b += '<div style="margin-top:10px">';
-  for (const it of L) b += '<a class="it" href="' + gcalUrl(it) + '" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><span class="f">' + it.ds.slice(5).replace('-', '/') + ' ' + esc(it.c.name) + '</span><span class="muted num" style="font-size:13px">約 ' + money(it.amt) + ' · 加到日曆</span></a>';
-  b += '</div><div class="sec cap">其他方式</div><div style="display:flex;flex-direction:column;gap:8px;margin-top:10px"><button class="go line" data-a="expics">下載 .ics 檔（部分手機打不開）</button></div>';
-  return { label: '撥款日提醒', head: headRow('', '撥款日提醒'), body: b };
-}
-
 /* ---------- 編輯入帳：這次入帳的班／入帳規則 ---------- */
 const wdn = s => '週' + WD[wd0(pd(s))];
 const ruleText = r => '週' + WD[r.from] + '到週' + WD[ruleEnd(r)] + '的班，' + (r.off ? '隔週' : '當週') + '週' + WD[r.wd] + '入帳';
@@ -1475,17 +1455,6 @@ function download(name, text, mime) {
   } catch (e) {}
   toast('如果沒有開始下載，請改用「複製備份內容」');
 }
-function icsText() {
-  const t = todayD(), to = addD(t, 120), out = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//shiftbook//TW', 'CALSCALE:GREGORIAN'];
-  const d8 = s => s.replace(/-/g, '');
-  for (const c of db.cases) if (c.active) for (const p of payDates(c, t, to)) {
-    const pa = period(c, p); if (pa.amount <= 0) continue; const ds = ymd(p);
-    out.push('BEGIN:VEVENT', 'UID:' + c.id + '-' + ds + '@shiftbook', 'DTSTAMP:' + d8(ymd(t)) + 'T000000Z', 'DTSTART;VALUE=DATE:' + d8(ds), 'SUMMARY:撥款日 ' + c.name + ' 約 NT$ ' + money(pa.amount),
-      'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:今天是撥款日', 'TRIGGER;RELATED=START:PT9H', 'END:VALARM', 'END:VEVENT');
-  }
-  out.push('END:VCALENDAR'); return out.join('\r\n');
-}
-
 /* ---------- 匯入過去的班表（CSV） ---------- */
 const CSV_TEMPLATE = '日期,案件名稱,開始時間,結束時間,基本薪資,加給,倍率,派案來源,備註\n2024-03-04,A案,08:00,20:00,6000,500,1,甲公司,\n2024-03-05,A案,08:00,20:00,6000,500,1,甲公司,\n2024-03-07,B案,20:00,08:00,6300,250,1,乙公司,夜班\n2024-03-09,C案,08:00,20:00,6000,0,1.5,丙公司,語言加給\n';
 const GEMINI_PROMPT = '請把我附上的班表資料整理成 CSV（UTF-8，逗號分隔），第一列固定為標題列：\n日期,案件名稱,開始時間,結束時間,基本薪資,加給,倍率,派案來源,備註\n\n規則：\n1. 每一個班一列。同一天上兩個班就寫兩列。\n2. 日期格式 YYYY-MM-DD，例如 2024-03-04。\n3. 開始時間、結束時間用 24 小時制 HH:MM，例如 08:00、20:00。夜班跨日（例如 20:00 到隔天 08:00）日期寫開始上班那天，結束時間寫 08:00。\n4. 案件名稱：同一個個案或案件永遠用同一個名字。\n5. 基本薪資：這一個班的基本金額（不含加給、不乘倍率），純數字，不要逗號或貨幣符號。不知道就留空。\n6. 加給：另外加的固定金額（交通、伙食等），純數字。沒有就填 0。\n7. 倍率：過年、颱風假、語言加成等倍數，例如 1.5、2；沒有就填 1。\n8. 派案來源：哪家公司或誰介紹的。不知道就留空。\n9. 備註可留空。\n10. 只輸出 CSV 內容本身，不要加說明文字，也不要用 Markdown 的程式碼區塊。\n11. 日期不確定或看不懂的列，請另外列在 CSV 之後的「需要確認」清單，不要自己猜。';
@@ -1901,12 +1870,10 @@ const A = {
     toast('已取消這筆入帳', '復原', () => { db.payments.push(p); save(); if (ui.sheet) renderSheet(true); render(); });
   },
   expjson: () => { db.settings.lastBackup = ymd(todayD()); save(); download('接案收入備份-' + ymd(todayD()) + '.json', backupText(), 'application/json'); },
-  ical: () => openSheet('ical'),
   csvtpl: () => download('班表匯入範本.csv', '\uFEFF' + CSV_TEMPLATE, 'text/csv'),
   csvprompt: () => { bk = bk || {}; bk.prompt = GEMINI_PROMPT; renderSheet(true); try { navigator.clipboard.writeText(GEMINI_PROMPT).then(() => toast('已複製指令'), () => {}); } catch (e) {} },
   csvgo: () => doCsvImport(bk.csv),
   csvno: () => { bk.csv = null; renderSheet(true); },
-  expics: () => { const s = icsText(); if (s.indexOf('BEGIN:VEVENT') < 0) { toast('近期沒有撥款日可以加'); return; } download('撥款日提醒.ics', s, 'text/calendar'); },
   settheme: el => { db.settings.theme = el.dataset.v; save(); render(); },
   bigtoggle: () => { db.settings.big = !db.settings.big; save(); render(); },
   tipok: () => { db.settings.tip1 = true; save(); keepScroll(render); },
