@@ -11,4 +11,4 @@
 在 GitHub 覆蓋 `index.html` 即可。使用者端可能因快取需要重新整理。
 
 ## 圖示
-- `apple-touch-icon.png`、`icon-192.png`、`icon-512.png`：米白底、灰色日式零錢包，金色口金，中間茜色小愛心（淺色深色共用同一組）
+- `apple-touch-icon.png`、`icon-192.png`、`icon-512.png`：米白底、茜色日式零錢包，金色口金，中間米白小愛心（淺色深色共用同一組）
