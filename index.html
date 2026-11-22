@@ -983,6 +983,7 @@ function viewMore() {
     '<div class="it" style="padding:10px 0"><span class="f">外觀</span><div class="seg sm" style="width:220px"><button class="' + ((db.settings.theme || 'auto') === 'auto' ? 'on' : '') + '" data-a="settheme" data-v="auto">跟隨系統</button><button class="' + (db.settings.theme === 'light' ? 'on' : '') + '" data-a="settheme" data-v="light">淺色</button><button class="' + (db.settings.theme === 'dark' ? 'on' : '') + '" data-a="settheme" data-v="dark">深色</button></div></div>' +
     '<button class="it" data-a="bigtoggle"><span class="f">字體放大</span><span class="muted" style="font-size:13px">' + (db.settings.big ? '已開' : '關') + '</span></button>' +
     '<button class="it" data-a="backup"><span class="f">備份與匯入</span><span class="muted" style="font-size:13px">匯出、匯入、範例</span>' + I.r + '</button>' +
+    '<button class="it" data-a="privacy"><span class="f">隱私說明</span><span class="muted" style="font-size:13px">資料存在哪裡</span>' + I.r + '</button>' +
     '<button class="it" data-a="guide"><span class="f">使用教學</span><span class="muted" style="font-size:13px">加到主畫面、基本操作</span>' + I.r + '</button>' +
     '<button class="it" data-a="contact"><span class="f">與開發者聯繫</span><span class="muted" style="font-size:13px">意見、問題、建議</span>' + I.r + '</button></div>' +
     '<p class="muted" style="font-size:12px;margin-top:20px">資料只存在這台裝置的瀏覽器裡，不會上傳。換手機或清除瀏覽器前，請先匯出備份。</p>';
@@ -1056,7 +1057,7 @@ const GSTEPS = [
     return '<div class="gd-hero"><img src="icon-192.png" width="84" height="84" alt="" style="border-radius:20px"></div>' +
       '<div class="gd-h" style="text-align:center">接案收入</div>' +
       '<p class="gd-p" style="text-align:center">記班表、算每月收入，<br>追蹤錢有沒有入帳。</p>' +
-      '<div class="gd-ok">資料<b style="font-weight:500">只存在這支手機</b>，不用註冊、不會上傳。<br>教學約 1 分鐘，之後可在「更多 → 使用教學」重看。</div>' +
+      '<div class="gd-ok">你輸入的資料<b style="font-weight:500">只存在這支手機</b>，<b style="font-weight:500">開發者看不到</b>，也不用註冊。<br>教學約 1 分鐘，之後可在「更多 → 使用教學」重看。</div>' +
       (IN_APP ? '<div class="gd-warn"><b style="font-weight:500">你現在是在 LINE 或社群 App 裡開啟的。</b><br>這裡沒辦法加到主畫面，資料也容易不見。請點右上角「⋯」選「用瀏覽器開啟」，改用 ' + (IS_IOS ? 'Safari' : 'Chrome') + '。</div>' : '');
   } },
   { t: '加到主畫面', h: function () {
@@ -1128,6 +1129,18 @@ function sheetGuide() {
   return { label: '使用教學', head: headRow('使用教學　' + (gd.i + 1) + ' / ' + n, ''), body: '<div class="gd-body">' + st.h() + '</div>', foot: dots + nav };
 }
 
+function sheetPrivacy() {
+  const row = function (ic, t, d) { return '<li><span><b>' + t + '</b><br><span style="color:var(--sub);font-size:16px;line-height:1.55">' + d + '</span></span></li>'; };
+  const b = '<div class="gd-h">你的資料，只在你手上</div>' +
+    '<p class="gd-p">你輸入的案件、班表、金額，<b style="font-weight:500">開發者看不到</b>，也不會傳到任何伺服器。</p>' +
+    '<ol class="gd-ol">' +
+    row('', '存在這支手機', '所有資料只存在這支手機的瀏覽器裡，沒有帳號、不用登入。') +
+    row('', '沒有追蹤', '沒有廣告，也沒有使用統計或追蹤程式。') +
+    row('', '只有你主動送出的才會傳', '只有你在「與開發者聯繫」按下送出的文字，開發者才會收到。包含你選填的聯絡方式；若勾選「附上裝置資訊」，會多一行手機型號與瀏覽器。不含案件、班表、金額。') +
+    row('', '想刪就刪', '「更多 → 備份與匯入 → 清除全部資料」可立即清空。清除瀏覽器資料也會一併消失，所以請記得備份。') +
+    '</ol>';
+  return { label: '隱私說明', head: headRow('隱私說明', ''), body: '<div class="gd-body" style="min-height:0">' + b + '</div>', foot: '<button class="go" data-a="close">我知道了</button>' };
+}
 /* ---------- 與開發者聯繫 ---------- */
 function newCt() { return { type: '意見', msg: '', contact: '', dev: true, state: '', err: '', canMail: false }; }
 let ct = newCt();
@@ -1144,6 +1157,7 @@ function sheetContact() {
   }
   const ready = !!(CFG.web3formsKey || CFG.email), busy = ct.state === 'sending';
   const b = '<p class="gd-p" style="margin-top:4px">有想法、遇到問題或發現哪裡怪怪的，寫在這裡，開發者會收到。</p>' +
+    '<div class="gd-ok" style="margin-top:8px">🔒 只會送出你在這裡寫的內容。你的案件、班表和金額<b style="font-weight:500">不會</b>跟著送出。</div>' +
     '<div class="seg" style="margin-top:12px">' + T.map(function (x) { return '<button class="' + (ct.type === x ? 'on' : '') + '" data-a="ctype" data-v="' + x + '">' + x + '</button>'; }).join('') + '</div>' +
     '<div class="sec" style="margin-top:16px"><label class="hint" for="ct-msg" style="font-size:13px;color:var(--muted)">想說的話</label>' +
     '<textarea id="ct-msg" class="ct-area" data-i="ct-msg" maxlength="2000" placeholder="' + (ct.type === '問題' ? '哪個畫面、做了什麼、看到什麼狀況？' : ct.type === '功能許願' ? '希望多一個什麼功能？' : '用起來的感覺、哪裡好用、哪裡不順都可以說') + '">' + esc(ct.msg) + '</textarea></div>' +
@@ -1195,11 +1209,11 @@ document.addEventListener('change', function (e) {
 
 /* ---------- sheets ---------- */
 function openSheet(name) { ui.info = {}; ui.sheet = name; document.body.classList.add('has-sheet'); renderSheet(); }
-function closeSheet() { if (ui.sheet === 'guide') markGuideSeen(); if ((ui.sheet === 'guide' || ui.sheet === 'contact') && /^#(guide|contact)$/.test(location.hash)) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} } document.body.classList.remove('has-sheet'); ui.sheet = null; ls = cf = bk = dayDs = dayEdit = pe = null; ui.swOpen = null; ui.fromLog = false; ui.lsKeep = null; $('#sheet').innerHTML = ''; render(); }
+function closeSheet() { if (ui.sheet === 'guide') markGuideSeen(); if ((ui.sheet === 'guide' || ui.sheet === 'contact' || ui.sheet === 'privacy') && /^#(guide|contact|privacy)$/.test(location.hash)) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} } document.body.classList.remove('has-sheet'); ui.sheet = null; ls = cf = bk = dayDs = dayEdit = pe = null; ui.swOpen = null; ui.fromLog = false; ui.lsKeep = null; $('#sheet').innerHTML = ''; render(); }
 function renderSheet(keep, anim) {
   const el = $('#sheet'), old = el.querySelector('.sheet'), top = keep && old ? old.scrollTop : 0;
   if (!ui.sheet) { el.innerHTML = ''; return; }
-  const parts = ui.sheet === 'log' ? sheetLog() : ui.sheet === 'case' ? sheetCase() : ui.sheet === 'day' ? sheetDay() : ui.sheet === 'payedit' ? sheetPayEdit() : ui.sheet === 'sources' ? sheetSources() : ui.sheet === 'payments' ? sheetPayments() : ui.sheet === 'rates' ? sheetRates() : ui.sheet === 'guide' ? sheetGuide() : ui.sheet === 'contact' ? sheetContact() : sheetBackup();
+  const parts = ui.sheet === 'log' ? sheetLog() : ui.sheet === 'case' ? sheetCase() : ui.sheet === 'day' ? sheetDay() : ui.sheet === 'payedit' ? sheetPayEdit() : ui.sheet === 'sources' ? sheetSources() : ui.sheet === 'payments' ? sheetPayments() : ui.sheet === 'rates' ? sheetRates() : ui.sheet === 'guide' ? sheetGuide() : ui.sheet === 'contact' ? sheetContact() : ui.sheet === 'privacy' ? sheetPrivacy() : sheetBackup();
   const na = keep ? ' style="animation:none"' : '';
   el.innerHTML = '<div class="scrim" data-a="close"' + na + '><div class="sheet' + (keep && !anim ? ' still' : '') + '" role="dialog" aria-modal="true" aria-label="' + esc(parts.label || '') + '"' + na + '>' +
     '<div class="sh-head' + (top > 4 ? ' line' : '') + '"><div class="grab"></div>' + parts.head + '</div>' + parts.body + (parts.foot ? '<div class="sh-foot">' + parts.foot + '</div>' : '') + '</div></div>';
@@ -2052,6 +2066,7 @@ const A = {
   payments: () => openSheet('payments'),
   backup: () => { bk = {}; openSheet('backup'); },
   guide: () => openGuide(0),
+  privacy: () => openSheet('privacy'),
   gnext: () => { if (gd.i < GSTEPS.length - 1) { gd.i++; renderSheet(true); const sh = $('#sheet .sheet'); if (sh) sh.scrollTop = 0; } else closeSheet(); },
   gprev: () => { if (gd.i > 0) { gd.i--; renderSheet(true); const sh = $('#sheet .sheet'); if (sh) sh.scrollTop = 0; } },
   gos: el => { gd.os = el.dataset.v; renderSheet(true); },
@@ -2222,7 +2237,7 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (ui.dlg) A.dlgno(); else if (ui.sheet) closeSheet(); } });
 window.addEventListener('scroll', onScroll, { passive: true });
 document.addEventListener('click', e => { const i = e.target.closest('.tpick input'); if (i && i.showPicker) { try { i.showPicker(); } catch (x) {} } });
-function route() { const h = (location.hash || '').slice(1); ui.tab = ['home', 'cases', 'more'].indexOf(h) >= 0 ? h : 'home'; ui.jig = null; if (ui.sheet) { ui.sheet = null; $('#sheet').innerHTML = ''; document.body.classList.remove('has-sheet'); } render(); window.scrollTo(0, 0); if (h === 'guide') openGuide(0); else if (h === 'contact') openContact(); }
+function route() { const h = (location.hash || '').slice(1); ui.tab = ['home', 'cases', 'more'].indexOf(h) >= 0 ? h : 'home'; ui.jig = null; if (ui.sheet) { ui.sheet = null; $('#sheet').innerHTML = ''; document.body.classList.remove('has-sheet'); } render(); window.scrollTo(0, 0); if (h === 'guide') openGuide(0); else if (h === 'contact') openContact(); else if (h === 'privacy') openSheet('privacy'); }
 window.addEventListener('hashchange', route);
 route();
 if (!ui.sheet && store && !guideSeen()) { markGuideSeen(); setTimeout(function () { if (!ui.sheet) openGuide(0); }, 450); }
