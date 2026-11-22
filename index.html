@@ -11,6 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="接案收入">
 <title>接案收入</title>
+<script src="config.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500&family=Noto+Serif+TC:wght@300;400&display=swap">
@@ -366,6 +367,35 @@ html.big .sheet{zoom:1.1}
 :root[data-theme="dark"] .card input.cname::placeholder{color:rgba(239,235,227,.5)}
 :root[data-theme="dark"] .scrim{background:rgba(0,0,0,.6)}
 :root[data-theme="light"]{color-scheme:light}:root[data-theme="dark"]{color-scheme:dark}
+
+/* ---------- 教學與聯繫 ---------- */
+.gd-body{min-height:min(500px,58dvh);padding-bottom:6px}
+.gd-dots{display:flex;gap:6px;justify-content:center;margin:14px 0 4px}
+.gd-dots i{width:7px;height:7px;border-radius:50%;background:var(--g3);transition:background .3s,width .3s}
+.gd-dots i.on{background:var(--ink);width:18px;border-radius:4px}
+.gd-h{font-family:'Noto Serif TC',serif;font-weight:400;font-size:28px;line-height:1.35;margin:6px 0 4px}
+.gd-p{color:var(--sub);font-size:16.5px;line-height:1.65;margin:6px 0}
+.gd-ol{list-style:none;margin:12px 0 0;padding:0;counter-reset:g}
+.gd-ol li{counter-increment:g;display:flex;gap:12px;align-items:flex-start;padding:13px 0;border-top:1px solid var(--g2);font-size:18px;line-height:1.6}
+.gd-ol li:first-child{border-top:none}
+.gd-ol li::before{content:counter(g);flex:0 0 38px;height:38px;border-radius:50%;background:var(--ink);color:var(--washi);font-size:20px;font-weight:500;display:flex;align-items:center;justify-content:center}
+.gd-ol li>span{padding-top:4px}
+.gd-ol li b{font-weight:500}
+.gd-ic{display:inline-flex;vertical-align:-5px;margin:0 2px;color:var(--ink)}
+.gd-warn{background:var(--g1);border-radius:12px;padding:12px 14px;font-size:16px;line-height:1.6;margin-top:12px;border-left:3px solid var(--red)}
+.gd-ok{background:var(--g1);border-radius:12px;padding:12px 14px;font-size:16px;line-height:1.6;margin-top:12px}
+.gd-links{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.gd-links a.go{text-decoration:none}
+.gd-nav{display:flex;gap:8px}
+.gd-nav .go{height:54px;font-size:17px}
+.gd-skip{border:none;background:transparent;color:var(--muted);font-size:16px;min-height:44px;padding:0 6px}
+.gd-hero{display:flex;justify-content:center;margin:6px 0 2px}
+.ct-area{width:100%;min-height:150px;border:1px solid var(--g3);background:var(--washi);border-radius:12px;padding:12px;outline:none;resize:vertical;line-height:1.6;font-size:15px}
+.ct-area:focus{border-color:var(--ink)}
+.ct-chk{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--sub);line-height:1.6;margin-top:12px;min-height:44px}
+.ct-chk input{width:20px;height:20px;margin:1px 0 0;accent-color:var(--ink);flex-shrink:0}
+.ct-hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.ct-done{text-align:center;padding:28px 0 8px}
 </style>
 </head>
 <body>
@@ -952,7 +982,9 @@ function viewMore() {
     '<button class="it" data-a="payments"><span class="f">收款紀錄</span><span class="muted" style="font-size:13px">' + db.payments.length + ' 筆</span>' + I.r + '</button>' +
     '<div class="it" style="padding:10px 0"><span class="f">外觀</span><div class="seg sm" style="width:220px"><button class="' + ((db.settings.theme || 'auto') === 'auto' ? 'on' : '') + '" data-a="settheme" data-v="auto">跟隨系統</button><button class="' + (db.settings.theme === 'light' ? 'on' : '') + '" data-a="settheme" data-v="light">淺色</button><button class="' + (db.settings.theme === 'dark' ? 'on' : '') + '" data-a="settheme" data-v="dark">深色</button></div></div>' +
     '<button class="it" data-a="bigtoggle"><span class="f">字體放大</span><span class="muted" style="font-size:13px">' + (db.settings.big ? '已開' : '關') + '</span></button>' +
-    '<button class="it" data-a="backup"><span class="f">備份與匯入</span><span class="muted" style="font-size:13px">匯出、匯入、範例</span>' + I.r + '</button></div>' +
+    '<button class="it" data-a="backup"><span class="f">備份與匯入</span><span class="muted" style="font-size:13px">匯出、匯入、範例</span>' + I.r + '</button>' +
+    '<button class="it" data-a="guide"><span class="f">使用教學</span><span class="muted" style="font-size:13px">加到主畫面、基本操作</span>' + I.r + '</button>' +
+    '<button class="it" data-a="contact"><span class="f">與開發者聯繫</span><span class="muted" style="font-size:13px">意見、問題、建議</span>' + I.r + '</button></div>' +
     '<p class="muted" style="font-size:12px;margin-top:20px">資料只存在這台裝置的瀏覽器裡，不會上傳。換手機或清除瀏覽器前，請先匯出備份。</p>';
   return h;
 }
@@ -1001,13 +1033,173 @@ function restCard(y, mo) {
     '<div class="muted" style="font-size:12px;margin-top:6px">平均只算到今天；本月過了 7 天才會納入，並換算成整月。點上面年度圖的月份可切換月份。</div></div>';
 }
 
+/* ---------- 使用教學（第一次開啟自動跳出） ---------- */
+const CFG = window.SHIFTBOOK_CONFIG || {};
+const APP_VER = 'r11';
+const GKEY = 'shiftbook-guide-seen';
+function guideSeen() { try { return localStorage.getItem(GKEY); } catch (e) { return null; } }
+function markGuideSeen() { try { localStorage.setItem(GKEY, '1'); } catch (e) {} }
+const UA = navigator.userAgent || '';
+const IS_IOS = /iPhone|iPad|iPod/.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1);
+const IS_ANDROID = /Android/i.test(UA);
+const IN_APP = /Line\/|FBAN|FBAV|Instagram|MicroMessenger|Messenger/i.test(UA);
+function isStandalone() { try { return !!(navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches)); } catch (e) { return false; } }
+let gd = { i: 0, os: IS_ANDROID ? 'android' : 'ios' };
+const GI = {
+  share: '<svg class="gd-ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-label="分享"><path d="M12 15V4M8 8l4-4 4 4"/><path d="M7 11H6a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7a1 1 0 0 0-1-1h-1"/></svg>',
+  dots: '<svg class="gd-ic" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-label="選單"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg>',
+  addsq: '<svg class="gd-ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-label="加入主畫面"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8.5v7M8.5 12h7"/></svg>'
+};
+const PDF_NAME = '接案收入使用教學.pdf';
+const GSTEPS = [
+  { t: '歡迎使用', h: function () {
+    return '<div class="gd-hero"><img src="icon-192.png" width="84" height="84" alt="" style="border-radius:20px"></div>' +
+      '<div class="gd-h" style="text-align:center">接案收入</div>' +
+      '<p class="gd-p" style="text-align:center">記班表、算每月收入，<br>追蹤錢有沒有入帳。</p>' +
+      '<div class="gd-ok">資料<b style="font-weight:500">只存在這支手機</b>，不用註冊、不會上傳。<br>教學約 1 分鐘，之後可在「更多 → 使用教學」重看。</div>' +
+      (IN_APP ? '<div class="gd-warn"><b style="font-weight:500">你現在是在 LINE 或社群 App 裡開啟的。</b><br>這裡沒辦法加到主畫面，資料也容易不見。請點右上角「⋯」選「用瀏覽器開啟」，改用 ' + (IS_IOS ? 'Safari' : 'Chrome') + '。</div>' : '');
+  } },
+  { t: '加到主畫面', h: function () {
+    const sa = isStandalone();
+    let h = '<div class="gd-h">加到主畫面</div><p class="gd-p">做一次，之後點圖示就能開。</p>';
+    if (sa) h += '<div class="gd-ok">✓ 你現在就是從主畫面開啟的，這一步已經完成。</div>';
+    h += '<div class="seg" style="margin-top:14px"><button class="' + (gd.os === 'ios' ? 'on' : '') + '" data-a="gos" data-v="ios">iPhone</button><button class="' + (gd.os === 'android' ? 'on' : '') + '" data-a="gos" data-v="android">Android</button></div>';
+    if (gd.os === 'ios') {
+      h += '<ol class="gd-ol"><li><span>用 <b>Safari</b> 開啟本頁。</span></li>' +
+        '<li><span>點下方 <b>分享</b> ' + GI.share + '（找不到就先點「⋯」）</span></li>' +
+        '<li><span>往下滑，找到 <b>加入主畫面</b> ' + GI.addsq + ' 並點選。</span></li>' +
+        '<li><span>點右上角 <b>新增</b>。</span></li></ol>' +
+        '<div class="gd-warn"><b style="font-weight:500">iPhone 請注意：</b>Safari 和主畫面圖示的資料<b style="font-weight:500">是分開的</b>。請一開始就從主畫面圖示使用。</div>';
+    } else {
+      h += '<ol class="gd-ol"><li><span>用 <b>Chrome</b> 開啟本頁。</span></li>' +
+        '<li><span>點右上角 <b>選單</b> ' + GI.dots + '。</span></li>' +
+        '<li><span>點 <b>加到主畫面</b>（或「安裝應用程式」）。</span></li>' +
+        '<li><span>點 <b>新增</b> 或 <b>安裝</b>。</span></li></ol>';
+    }
+    return h;
+  } },
+  { t: '建立案件', h: function () {
+    return '<div class="gd-h">建立案件</div><p class="gd-p">「案件」＝你接的一份工作。</p>' +
+      '<ol class="gd-ol"><li><span>點下方 <b>案件</b>，再點 <b>新增案件</b>。</span></li>' +
+      '<li><span>填 <b>名稱</b>、<b>派案來源</b>。</span></li>' +
+      '<li><span>設定 <b>薪資</b>（依時間算，或單次固定）。</span></li>' +
+      '<li><span>選 <b>收款週期</b>（週收、雙週收、月收）。</span></li>' +
+      '<li><span>按 <b>儲存</b>。</span></li></ol>' +
+      '<div class="gd-ok">想先逛逛？點首頁的「先看範例資料」。</div>';
+  } },
+  { t: '排班', h: function () {
+    return '<div class="gd-h">排班</div><p class="gd-p">一次可排整個月。</p>' +
+      '<ol class="gd-ol"><li><span>點右下角 <b>＋ 排班</b>。</span></li>' +
+      '<li><span><b>選日期</b>，可一次點很多天。</span></li>' +
+      '<li><span><b>選案件</b>和<b>上班時間</b>。</span></li>' +
+      '<li><span>按儲存，月曆就會出現記號。</span></li></ol>' +
+      '<div class="gd-ok"><b style="font-weight:500">點日期</b>可看或修改當天的班。<b style="font-weight:500">向左滑</b>可刪除。</div>';
+  } },
+  { t: '看收入與入帳', h: function () {
+    return '<div class="gd-h">看收入、確認入帳</div>' +
+      '<ol class="gd-ol"><li><span>首頁大數字＝<b>本月應收</b>。</span></li>' +
+      '<li><span>有 <b>$ 圓圈</b> 的日子＝<b>撥款日</b>。</span></li>' +
+      '<li><span>在「<b>即將入帳</b>」，收到錢就點前面的圓圈。</span></li>' +
+      '<li><span>點 <b>更多</b>，看全年收入圖。</span></li></ol>';
+  } },
+  { t: '備份', h: function () {
+    return '<div class="gd-h">記得備份</div>' +
+      '<p class="gd-p">換手機、清除瀏覽器資料、刪掉圖示，資料都可能<b style="font-weight:500">不見</b>。</p>' +
+      '<ol class="gd-ol"><li><span>點 <b>更多 → 備份與匯入</b>。</span></li>' +
+      '<li><span>點 <b>下載備份檔</b>，存到手機或傳給自己。</span></li>' +
+      '<li><span>換手機時，點 <b>選擇備份檔</b> 還原。</span></li></ol>' +
+      '<div class="gd-ok">超過 30 天沒備份，首頁會提醒你。</div>';
+  } },
+  { t: '完成', h: function () {
+    return '<div class="gd-h">開始使用吧</div>' +
+      '<p class="gd-p">有問題或想要新功能，都可以告訴開發者。</p>' +
+      '<div class="gd-links"><button class="go" data-a="gcontact">與開發者聯繫</button>' +
+      '<a class="go line" href="shiftbook-guide.pdf" target="_blank" rel="noopener" download="' + PDF_NAME + '">下載教學文件（PDF）</a>' +
+      '<a class="go line" href="guide.html" target="_blank" rel="noopener">開啟網頁版教學</a></div>' +
+      '<p class="muted" style="font-size:12px;margin-top:14px;text-align:center">之後想重看：更多 → 使用教學</p>';
+  } }
+];
+function openGuide(i) { gd.i = i || 0; openSheet('guide'); }
+function sheetGuide() {
+  const n = GSTEPS.length, st = GSTEPS[gd.i], last = gd.i === n - 1;
+  const dots = '<div class="gd-dots">' + GSTEPS.map(function (x, k) { return '<i class="' + (k === gd.i ? 'on' : '') + '"></i>'; }).join('') + '</div>';
+  const nav = '<div class="gd-nav">' + (gd.i > 0 ? '<button class="go line" data-a="gprev" style="flex:0 0 38%">上一步</button>' : '<button class="gd-skip" data-a="close" style="flex:0 0 38%">略過</button>') +
+    '<button class="go" data-a="gnext">' + (last ? '開始使用' : gd.i === 0 ? '開始看教學' : '下一步') + '</button></div>';
+  return { label: '使用教學', head: headRow('使用教學　' + (gd.i + 1) + ' / ' + n, ''), body: '<div class="gd-body">' + st.h() + '</div>', foot: dots + nav };
+}
+
+/* ---------- 與開發者聯繫 ---------- */
+function newCt() { return { type: '意見', msg: '', contact: '', dev: true, state: '', err: '', canMail: false }; }
+let ct = newCt();
+function openContact() { if (ct.state === 'done') ct = newCt(); openSheet('contact'); }
+function deviceInfo() {
+  const th = (db && db.settings && db.settings.theme) || 'auto';
+  return ['版本 ' + APP_VER, (IS_IOS ? 'iOS' : IS_ANDROID ? 'Android' : '其他'), '主畫面開啟：' + (isStandalone() ? '是' : '否'), '螢幕 ' + screen.width + '×' + screen.height, '外觀 ' + th, UA].join(' | ');
+}
+function sheetContact() {
+  const T = ['意見', '問題', '功能許願'];
+  if (ct.state === 'done') {
+    return { label: '與開發者聯繫', head: headRow('', '與開發者聯繫'), body: '<div class="ct-done"><div class="serif" style="font-size:26px">已送出，謝謝你</div><p class="gd-p" style="margin-top:10px">開發者收到了。' + (ct.contact ? '如果需要回覆，會用你留的聯絡方式找你。' : '') + '</p></div>',
+      foot: '<div class="gd-nav"><button class="go line" data-a="ctagain">再寫一則</button><button class="go" data-a="close">完成</button></div>' };
+  }
+  const ready = !!(CFG.web3formsKey || CFG.email), busy = ct.state === 'sending';
+  const b = '<p class="gd-p" style="margin-top:4px">有想法、遇到問題或發現哪裡怪怪的，寫在這裡，開發者會收到。</p>' +
+    '<div class="seg" style="margin-top:12px">' + T.map(function (x) { return '<button class="' + (ct.type === x ? 'on' : '') + '" data-a="ctype" data-v="' + x + '">' + x + '</button>'; }).join('') + '</div>' +
+    '<div class="sec" style="margin-top:16px"><label class="hint" for="ct-msg" style="font-size:13px;color:var(--muted)">想說的話</label>' +
+    '<textarea id="ct-msg" class="ct-area" data-i="ct-msg" maxlength="2000" placeholder="' + (ct.type === '問題' ? '哪個畫面、做了什麼、看到什麼狀況？' : ct.type === '功能許願' ? '希望多一個什麼功能？' : '用起來的感覺、哪裡好用、哪裡不順都可以說') + '">' + esc(ct.msg) + '</textarea></div>' +
+    '<div class="sec" style="margin-top:14px"><label class="hint" for="ct-contact" style="font-size:13px;color:var(--muted)">聯絡方式（選填，想收到回覆才需要）</label>' +
+    '<input id="ct-contact" class="field" data-i="ct-contact" maxlength="120" placeholder="Email 或 LINE ID" value="' + esc(ct.contact) + '" autocomplete="off"></div>' +
+    '<label class="ct-chk"><input type="checkbox" data-i="ct-dev"' + (ct.dev ? ' checked' : '') + '><span>一併附上手機型號與瀏覽器資訊，方便開發者找問題。<b style="font-weight:500">不會</b>包含你的案件、班表和金額。</span></label>' +
+    '<input class="ct-hp" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" data-i="ct-hp">' +
+    (ct.err ? '<div class="err" style="min-height:0;margin-top:10px">' + esc(ct.err) + '</div>' : '') +
+    (ct.canMail && CFG.email ? '<button class="go line" data-a="ctmail" style="margin-top:10px">改用 Email 寄出</button>' : '') +
+    (!ready ? '<div class="gd-warn">這個功能還沒完成收信設定，暫時無法送出。</div>' : '');
+  return { label: '與開發者聯繫', head: headRow('', '與開發者聯繫'), body: b, foot: '<button class="go' + (busy || !ready ? ' off' : '') + '" data-a="ctsend">' + (busy ? '傳送中…' : '送出') + '</button>' };
+}
+async function sendContact(viaMail) {
+  if (ct.state === 'sending') return;
+  if (ct.hp) { ct.state = 'done'; renderSheet(true); return; }
+  const msg = (ct.msg || '').trim();
+  if (msg.length < 3) { ct.err = '請先寫一點內容再送出。'; renderSheet(true); return; }
+  const info = ct.dev ? deviceInfo() : '（未附裝置資訊）', contact = (ct.contact || '').trim();
+  const subject = '[接案收入] ' + ct.type + '：' + msg.slice(0, 20).replace(/\s+/g, ' ');
+  if (viaMail || !CFG.web3formsKey) {
+    if (!CFG.email) { ct.err = '目前無法送出，請稍後再試。'; renderSheet(true); return; }
+    const body = msg + '\n\n聯絡方式：' + (contact || '（未填）') + '\n' + info;
+    location.href = 'mailto:' + CFG.email + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    ct.err = ''; return;
+  }
+  ct.state = 'sending'; ct.err = ''; renderSheet(true);
+  try {
+    const r = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ access_key: CFG.web3formsKey, subject: subject, from_name: '接案收入 App', message: msg, 類型: ct.type, 聯絡方式: contact || '（未填）', 裝置資訊: info, email: /@/.test(contact) ? contact : undefined, botcheck: '' })
+    });
+    const j = await r.json().catch(function () { return {}; });
+    if (r.ok && j.success) { ct.state = 'done'; ct.msg = ''; } else throw new Error(j.message || 'fail');
+  } catch (e) {
+    ct.state = ''; ct.canMail = true;
+    ct.err = '傳送失敗，可能是網路不穩。內容還在，請稍後再按一次送出' + (CFG.email ? '，或改用 Email 寄出。' : '。');
+  }
+  if (ui.sheet === 'contact') renderSheet(true);
+}
+document.addEventListener('input', function (e) {
+  const k = e.target.dataset && e.target.dataset.i;
+  if (k === 'ct-msg') { ct.msg = e.target.value; ct.err = ''; }
+  else if (k === 'ct-contact') ct.contact = e.target.value;
+  else if (k === 'ct-hp') ct.hp = e.target.value;
+});
+document.addEventListener('change', function (e) {
+  if (e.target.dataset && e.target.dataset.i === 'ct-dev') ct.dev = e.target.checked;
+});
+
 /* ---------- sheets ---------- */
 function openSheet(name) { ui.info = {}; ui.sheet = name; document.body.classList.add('has-sheet'); renderSheet(); }
-function closeSheet() { document.body.classList.remove('has-sheet'); ui.sheet = null; ls = cf = bk = dayDs = dayEdit = pe = null; ui.swOpen = null; ui.fromLog = false; ui.lsKeep = null; $('#sheet').innerHTML = ''; render(); }
+function closeSheet() { if (ui.sheet === 'guide') markGuideSeen(); if ((ui.sheet === 'guide' || ui.sheet === 'contact') && /^#(guide|contact)$/.test(location.hash)) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} } document.body.classList.remove('has-sheet'); ui.sheet = null; ls = cf = bk = dayDs = dayEdit = pe = null; ui.swOpen = null; ui.fromLog = false; ui.lsKeep = null; $('#sheet').innerHTML = ''; render(); }
 function renderSheet(keep, anim) {
   const el = $('#sheet'), old = el.querySelector('.sheet'), top = keep && old ? old.scrollTop : 0;
   if (!ui.sheet) { el.innerHTML = ''; return; }
-  const parts = ui.sheet === 'log' ? sheetLog() : ui.sheet === 'case' ? sheetCase() : ui.sheet === 'day' ? sheetDay() : ui.sheet === 'payedit' ? sheetPayEdit() : ui.sheet === 'sources' ? sheetSources() : ui.sheet === 'payments' ? sheetPayments() : ui.sheet === 'rates' ? sheetRates() : sheetBackup();
+  const parts = ui.sheet === 'log' ? sheetLog() : ui.sheet === 'case' ? sheetCase() : ui.sheet === 'day' ? sheetDay() : ui.sheet === 'payedit' ? sheetPayEdit() : ui.sheet === 'sources' ? sheetSources() : ui.sheet === 'payments' ? sheetPayments() : ui.sheet === 'rates' ? sheetRates() : ui.sheet === 'guide' ? sheetGuide() : ui.sheet === 'contact' ? sheetContact() : sheetBackup();
   const na = keep ? ' style="animation:none"' : '';
   el.innerHTML = '<div class="scrim" data-a="close"' + na + '><div class="sheet' + (keep && !anim ? ' still' : '') + '" role="dialog" aria-modal="true" aria-label="' + esc(parts.label || '') + '"' + na + '>' +
     '<div class="sh-head' + (top > 4 ? ' line' : '') + '"><div class="grab"></div>' + parts.head + '</div>' + parts.body + (parts.foot ? '<div class="sh-foot">' + parts.foot + '</div>' : '') + '</div></div>';
@@ -1859,6 +2051,16 @@ const A = {
   },
   payments: () => openSheet('payments'),
   backup: () => { bk = {}; openSheet('backup'); },
+  guide: () => openGuide(0),
+  gnext: () => { if (gd.i < GSTEPS.length - 1) { gd.i++; renderSheet(true); const sh = $('#sheet .sheet'); if (sh) sh.scrollTop = 0; } else closeSheet(); },
+  gprev: () => { if (gd.i > 0) { gd.i--; renderSheet(true); const sh = $('#sheet .sheet'); if (sh) sh.scrollTop = 0; } },
+  gos: el => { gd.os = el.dataset.v; renderSheet(true); },
+  gcontact: () => { markGuideSeen(); ui.sheet = null; openContact(); },
+  contact: () => openContact(),
+  ctype: el => { ct.type = el.dataset.v; renderSheet(true); },
+  ctagain: () => { ct = newCt(); renderSheet(true); },
+  ctsend: () => sendContact(false),
+  ctmail: () => sendContact(true),
   srcadd: () => { const v = ($('#newsrc').value || '').trim(); if (!v) return; db.sources.push({ id: uid(), name: v }); save(); renderSheet(true); },
   delsrc: el => {
     const id = el.dataset.id, n = db.cases.filter(c => c.sourceId === id).length;
@@ -2020,9 +2222,10 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (ui.dlg) A.dlgno(); else if (ui.sheet) closeSheet(); } });
 window.addEventListener('scroll', onScroll, { passive: true });
 document.addEventListener('click', e => { const i = e.target.closest('.tpick input'); if (i && i.showPicker) { try { i.showPicker(); } catch (x) {} } });
-function route() { const h = (location.hash || '').slice(1); ui.tab = ['home', 'cases', 'more'].indexOf(h) >= 0 ? h : 'home'; ui.jig = null; if (ui.sheet) { ui.sheet = null; $('#sheet').innerHTML = ''; document.body.classList.remove('has-sheet'); } render(); window.scrollTo(0, 0); }
+function route() { const h = (location.hash || '').slice(1); ui.tab = ['home', 'cases', 'more'].indexOf(h) >= 0 ? h : 'home'; ui.jig = null; if (ui.sheet) { ui.sheet = null; $('#sheet').innerHTML = ''; document.body.classList.remove('has-sheet'); } render(); window.scrollTo(0, 0); if (h === 'guide') openGuide(0); else if (h === 'contact') openContact(); }
 window.addEventListener('hashchange', route);
 route();
+if (!ui.sheet && store && !guideSeen()) { markGuideSeen(); setTimeout(function () { if (!ui.sheet) openGuide(0); }, 450); }
 if (!store) toast('這個瀏覽器無法保存資料，關閉後會消失');
 
 })();

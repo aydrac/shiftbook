@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FAF8F4">
+<title>接案收入｜使用教學</title>
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500&family=Noto+Serif+TC:wght@300;400&display=swap">
+<style>
+:root{--washi:#FAF8F4;--ink:#1C1C1C;--red:#B7282E;--g1:#F1EEE8;--g2:#E7E2D9;--g3:#DCD6CB;--muted:#6B6B6B;--sub:#2E2E2E}
+@media (prefers-color-scheme:dark){:root{--washi:#1A1917;--ink:#EFEBE3;--red:#F0C75E;--g1:#25231F;--g2:#33302A;--g3:#47433B;--muted:#A19C91;--sub:#E2DDD2}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--washi);color:var(--ink);font-family:'Inter','Noto Sans TC','Noto Sans CJK TC',system-ui,sans-serif;font-size:21px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px calc(40px + env(safe-area-inset-bottom))}
+header.hero{padding:calc(14px + env(safe-area-inset-top)) 0 0;text-align:center}
+header.hero img{width:72px;height:72px;border-radius:18px}
+h1{font-family:'Noto Serif TC','Noto Serif CJK TC',serif;font-weight:400;font-size:34px;margin:8px 0 0;line-height:1.25}
+.sub{color:var(--muted);font-size:16px;margin:0}
+.btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:12px 0 4px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:54px;padding:0 26px;border-radius:30px;border:1.5px solid var(--ink);background:var(--ink);color:var(--washi);font-size:19px;font-weight:500;text-decoration:none}
+.btn.line{background:transparent;color:var(--ink)}
+nav.toc{margin:14px 0 0;border-top:1px solid var(--g2);border-bottom:1px solid var(--g2)}
+nav.toc a{display:flex;align-items:center;gap:12px;min-height:52px;color:var(--ink);text-decoration:none;font-size:21px;border-top:1px solid var(--g2)}
+nav.toc a:first-child{border-top:none}
+nav.toc a i{font-style:normal;flex:0 0 34px;height:34px;border-radius:50%;background:var(--ink);color:var(--washi);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:500}
+section{margin-top:30px;scroll-margin-top:16px}
+h2{font-family:'Noto Serif TC','Noto Serif CJK TC',serif;font-weight:400;font-size:32px;margin:0 0 4px;line-height:1.3}
+h3{font-size:24px;font-weight:500;margin:18px 0 0}
+p{margin:4px 0;color:var(--sub)}
+b,strong{font-weight:500;color:var(--ink)}
+ol.st{list-style:none;margin:4px 0 0;padding:0;counter-reset:s}
+ol.st li{counter-increment:s;display:flex;gap:14px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--g2);color:var(--sub);font-size:21px;line-height:1.5}
+ol.st li:first-child{border-top:none}
+ol.st li::before{content:counter(s);flex:0 0 42px;height:42px;border-radius:50%;background:var(--ink);color:var(--washi);font-size:22px;font-weight:500;display:flex;align-items:center;justify-content:center}
+ol.st li span{padding-top:6px}
+.ic{display:inline-flex;vertical-align:-6px;margin:0 3px;color:var(--ink)}
+.note{background:var(--g1);border-radius:16px;padding:10px 14px;margin:10px 0;font-size:19.5px;line-height:1.5;color:var(--sub)}
+.note.warn{border-left:4px solid var(--red)}
+.os{display:grid;grid-template-columns:1fr;gap:10px;margin-top:8px}
+.card{border:1.5px solid var(--g3);border-radius:20px;padding:12px 14px 4px}
+.card h3{margin-top:0;font-family:'Noto Serif TC','Noto Serif CJK TC',serif;font-weight:400;font-size:28px}
+.shots{display:flex;gap:10px;overflow-x:auto;margin:10px -16px 0;padding:2px 16px 6px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.shots figure{flex:0 0 min(76%,300px);margin:0;scroll-snap-align:start}
+.shots img,.one img{width:100%;display:block;border-radius:22px;border:1px solid var(--g3);box-shadow:0 6px 22px rgba(0,0,0,.08)}
+.shots figcaption,.one figcaption{font-size:17px;color:var(--muted);text-align:center;margin-top:6px;line-height:1.5}
+.one{margin:10px auto;max-width:320px}
+.one figure{margin:0}
+details{border-top:1px solid var(--g2)}
+details:last-of-type{border-bottom:1px solid var(--g2)}
+summary{list-style:none;min-height:56px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;font-weight:500;font-size:21px;padding:6px 0;line-height:1.5}
+summary::-webkit-details-marker{display:none}
+summary::after{content:'+';font-size:30px;font-weight:300;color:var(--muted);flex-shrink:0}
+details[open] summary::after{content:'−'}
+details .a{padding:0 0 10px;color:var(--sub);font-size:20px}
+details .a p{margin:6px 0}
+footer{margin-top:30px;padding-top:12px;border-top:1px solid var(--g2);text-align:center;color:var(--muted);font-size:15px}
+@media print{
+  @page{size:120mm 213mm;margin:6mm 5mm}
+  :root{--washi:#fff;--ink:#1C1C1C;--red:#B7282E;--g1:#F4F1EB;--g2:#E2DDD3;--g3:#D3CCBF;--muted:#6B6B6B;--sub:#2E2E2E}
+  body{font-size:12.5pt;line-height:1.5;background:#fff}
+  .wrap{max-width:none;padding:0}
+  .btns,nav.toc,footer{display:none}
+  header.hero{padding-top:0}
+  header.hero img{width:56px;height:56px}
+  h1{font-size:22pt}
+  section{margin-top:14px}
+  h2,h3{break-after:avoid;page-break-after:avoid}
+  h2{font-size:19pt;break-inside:avoid}
+  h3{font-size:14pt;margin-top:10px}
+  ol.st li{font-size:12.5pt;padding:5px 0;gap:9px}
+  ol.st li::before{flex:0 0 30px;height:30px;font-size:15pt}
+  ol.st li span{padding-top:3px}
+  .note{font-size:11.5pt;padding:7px 10px;margin:7px 0}
+  .card{padding:8px 10px 2px}
+  .card h3{font-size:16pt}
+  summary{font-size:12.5pt;min-height:0;padding:5px 0}
+  details .a{font-size:12pt}
+  ol.st li,.note,details,.shots figure,.one{break-inside:avoid}
+  .shots{overflow:visible;margin:8px 0 0;padding:0;gap:8px}
+  .shots figure{flex:1 1 0}
+  .shots img,.one img{box-shadow:none;border-radius:12px}
+  .shots figcaption,.one figcaption{font-size:10pt}
+  .one{max-width:46mm;margin:6px auto}
+  .shots figure{max-width:40mm}
+  .shots{justify-content:center}
+  summary::after{content:''}
+  .os{grid-template-columns:1fr;gap:8px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <img src="icon-192.png" alt="">
+  <h1>接案收入<br>使用教學</h1>
+  <p class="sub">iPhone／Android 都適用</p>
+  <div class="btns">
+    <a class="btn" href="./">回到 App</a>
+    <a class="btn line" href="shiftbook-guide.pdf" download="接案收入使用教學.pdf">下載 PDF</a>
+  </div>
+</header>
+
+<nav class="toc" aria-label="目錄">
+  <a href="#install"><i>1</i>加到手機主畫面</a>
+  <a href="#start"><i>2</i>建立案件、排班</a>
+  <a href="#money"><i>3</i>看收入、確認入帳</a>
+  <a href="#backup"><i>4</i>備份（很重要）</a>
+  <a href="#faq"><i>5</i>常見問題</a>
+  <a href="#contact"><i>6</i>聯絡開發者</a>
+</nav>
+
+<section id="intro" style="margin-top:14px">
+  <div class="note">記班表、算每月收入、追蹤錢<b>有沒有入帳</b>。<br><b>資料只存在你的手機</b>，不用註冊，也不會上傳。</div>
+</section>
+
+<section id="install">
+  <h2>1　加到手機主畫面</h2>
+  <p>只要做一次，之後點圖示就能開。</p>
+  <div class="note warn"><b>從 LINE 點進來的話：</b>請點右上角「⋯」→「用瀏覽器開啟」。iPhone 用 Safari，Android 用 Chrome。</div>
+  <div class="os">
+    <div class="card">
+      <h3>iPhone</h3>
+      <ol class="st">
+        <li><span>用 <b>Safari</b> 開啟本頁。</span></li>
+        <li><span>點下方 <b>分享</b>
+          <svg class="ic" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M8 8l4-4 4 4"/><path d="M7 11H6a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7a1 1 0 0 0-1-1h-1"/></svg>
+          （找不到就先點「⋯」）</span></li>
+        <li><span>往下滑，點 <b>加入主畫面</b>
+          <svg class="ic" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></li>
+        <li><span>點右上角 <b>新增</b>。</span></li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Android</h3>
+      <ol class="st">
+        <li><span>用 <b>Chrome</b> 開啟本頁。</span></li>
+        <li><span>點右上角 <b>選單</b>
+          <svg class="ic" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></span></li>
+        <li><span>點 <b>加到主畫面</b>（或「安裝應用程式」）。</span></li>
+        <li><span>點 <b>新增</b> 或 <b>安裝</b>。</span></li>
+      </ol>
+    </div>
+  </div>
+  <div class="note warn"><b>iPhone 請注意：</b>Safari 和主畫面圖示的資料<b>是分開的</b>。請一開始就從主畫面圖示使用。</div>
+</section>
+
+<section id="start">
+  <h2>2　建立案件、排班</h2>
+  <h3>先建立案件</h3>
+  <p>「案件」＝你接的一份工作。</p>
+  <ol class="st">
+    <li><span>點下方 <b>案件</b>，再點 <b>新增案件</b>。</span></li>
+    <li><span>填 <b>名稱</b>、<b>派案來源</b>。</span></li>
+    <li><span>設定 <b>薪資</b>（依時間算，或單次固定）。</span></li>
+    <li><span>選 <b>收款週期</b>（週收、雙週收、月收）。</span></li>
+    <li><span>按 <b>儲存</b>。</span></li>
+  </ol>
+  <div class="shots">
+    <figure><img src="img/guide/s2-cases.jpg" alt="案件頁" loading="lazy"><figcaption>案件頁，右上角「新增案件」</figcaption></figure>
+    <figure><img src="img/guide/s0-empty.jpg" alt="空白首頁" loading="lazy"><figcaption>第一次開啟的首頁</figcaption></figure>
+  </div>
+  <div class="note">想先逛逛？點首頁的 <b>先看範例資料</b>。</div>
+
+  <h3>再排班</h3>
+  <ol class="st">
+    <li><span>點右下角 <b>＋ 排班</b>。</span></li>
+    <li><span><b>選日期</b>，可一次點很多天。</span></li>
+    <li><span><b>選案件</b>和<b>上班時間</b>。</span></li>
+    <li><span>按儲存，月曆就會出現記號。</span></li>
+  </ol>
+  <div class="one"><figure><img src="img/guide/s3-log.jpg" alt="排班畫面" loading="lazy"><figcaption>排班畫面</figcaption></figure></div>
+  <div class="note"><b>點月曆日期</b>可看或修改當天的班。<b>向左滑</b>可刪除。</div>
+</section>
+
+<section id="money">
+  <h2>3　看收入、確認入帳</h2>
+  <ol class="st">
+    <li><span>首頁大數字＝<b>本月應收</b>。</span></li>
+    <li><span>有 <b>$ 小圓圈</b> 的日子＝<b>撥款日</b>。</span></li>
+    <li><span>在「<b>即將入帳</b>」，收到錢就點前面的圓圈。點錯可復原。</span></li>
+    <li><span>點 <b>更多</b>，看全年收入圖。</span></li>
+  </ol>
+  <div class="shots">
+    <figure><img src="img/guide/s1-home.jpg" alt="首頁" loading="lazy"><figcaption>首頁（範例資料）</figcaption></figure>
+    <figure><img src="img/guide/s4-more.jpg" alt="更多頁" loading="lazy"><figcaption>更多頁</figcaption></figure>
+  </div>
+  <p>實收金額不同？到「更多 → 收款紀錄」修改。</p>
+</section>
+
+<section id="backup">
+  <h2>4　備份（很重要）</h2>
+  <div class="note warn">換手機、清除瀏覽器資料、刪掉圖示，資料都可能<b>不見</b>。建議每月備份一次。</div>
+  <h3>備份</h3>
+  <ol class="st">
+    <li><span>點 <b>更多 → 備份與匯入</b>。</span></li>
+    <li><span>點 <b>下載備份檔</b>，存到手機或傳給自己。</span></li>
+  </ol>
+  <h3>還原、換手機</h3>
+  <ol class="st">
+    <li><span>在新手機開啟，進 <b>備份與匯入</b>。</span></li>
+    <li><span>點 <b>選擇備份檔</b>。</span></li>
+    <li><span>選 <b>加進現有資料</b>（較安全）。</span></li>
+  </ol>
+  <div class="one"><figure><img src="img/guide/s5-backup.jpg" alt="備份與匯入" loading="lazy"><figcaption>更多 → 備份與匯入</figcaption></figure></div>
+</section>
+
+<section id="faq">
+  <h2>5　常見問題</h2>
+  <details><summary>改薪資，過去的班會變嗎？</summary><div class="a"><p>會先問你。案件頁點開案件 →「編輯」，儲存後可選「全部」、「今天起」或「只用在之後」。</p></div></details>
+  <details><summary>案件做完了？</summary><div class="a"><p>案件頁點開案件，按「結案」。紀錄都還在。</p></div></details>
+  <details><summary>補排過去的班？</summary><div class="a"><p>撥款日已過的話，App 會問你是否已領過，可一次標為已入帳。</p></div></details>
+  <details><summary>資料不見了？</summary><div class="a"><p>常見原因：</p><p>① 開啟方式不同（例如在 LINE 裡開）。請固定用主畫面圖示。</p><p>② iPhone 的 Safari 和主畫面資料是分開的。</p><p>③ 清除過瀏覽器資料。只能用備份檔還原。</p></div></details>
+  <details><summary>字太小？想用深色？</summary><div class="a"><p>「更多」裡可開「字體放大」，「外觀」可選深色。</p></div></details>
+  <details><summary>能同步到別支手機嗎？</summary><div class="a"><p>不行。請用「備份 → 匯入」搬資料。也沒有推播通知。</p></div></details>
+</section>
+
+<section id="contact">
+  <h2>6　聯絡開發者</h2>
+  <p>有問題或想要新功能，直接告訴我們。</p>
+  <ol class="st">
+    <li><span>點 <b>更多 → 與開發者聯繫</b>。</span></li>
+    <li><span>選類型，寫下想說的話。</span></li>
+    <li><span>按 <b>送出</b>。</span></li>
+  </ol>
+  <div class="btns" style="justify-content:flex-start"><a class="btn" href="./#contact">開啟聯繫表單</a></div>
+</section>
+
+<footer>接案收入　·　<a href="./" style="color:inherit">回到 App</a></footer>
+</div>
+<script>
+window.addEventListener('beforeprint',function(){document.querySelectorAll('details').forEach(function(d){d.open=true;});});
+</script>
+</body>
+</html>

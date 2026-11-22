@@ -12,3 +12,9 @@
 
 ## 圖示
 - `apple-touch-icon.png`、`icon-192.png`、`icon-512.png`：米白底、茜色日式零錢包，金色口金，中間米白小愛心（淺色深色共用同一組）
+
+
+## 教學與聯繫（第十一輪）
+- 第一次開啟會自動跳出使用教學；之後在「更多 → 使用教學」重看。網址加 `#guide` 可直接開教學、`#contact` 直接開聯繫表單。
+- `guide.html`：網頁版教學（可列印）；`shiftbook-guide.pdf`：同內容 PDF（由 guide.html 列印產生）。
+- 「與開發者聯繫」：收信設定寫在 `config.js`（`web3formsKey`、`email`）。更新 index.html 時不必動這個檔案。
