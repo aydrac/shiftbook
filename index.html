@@ -1679,7 +1679,11 @@ function parseCSV(s) {
 }
 function csvDate(s) { const m = String(s).trim().match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})$/); if (!m) return null; const d = new Date(+m[1], m[2] - 1, +m[3]); return d.getMonth() === m[2] - 1 && d.getDate() === +m[3] ? ymd(d) : null; }
 function csvTime(s) { const m = String(s).trim().match(/^(\d{1,2})[:：](\d{2})$/); if (!m || +m[1] > 24 || +m[2] > 59) return null; return (+m[1] * 60 + +m[2]) % 1440; }
-const csvNum = s => { const v = String(s == null ? '' : s).replace(/[,\s$元]/g, ''); return v === '' ? null : (isFinite(+v) ? +v : NaN); };
+const csvNum = s => {
+  let t = String(s == null ? '' : s).trim().replace(/[（(][^）)]*[）)]\s*$/, '').replace(/[,，\s$元]/g, '');
+  t = t.replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 65248));
+  return t === '' ? null : (isFinite(+t) ? +t : NaN);
+};
 function csvPlan(text) {
   const rows = parseCSV(text), plan = { rows: [], errors: [], names: {}, min: '9999', max: '0000', noPrice: 0 };
   if (!rows.length) { plan.fatal = '檔案是空的'; return plan; }
@@ -1703,7 +1707,7 @@ function csvPlan(text) {
     if (date < plan.min) plan.min = date; if (date > plan.max) plan.max = date;
     const nm = plan.names[name] || (plan.names[name] = { n: 0, isNew: !db.cases.some(c => c.name === name) }); nm.n++;
   }
-  if (!plan.rows.length && !plan.fatal) plan.fatal = '沒有讀到可以匯入的班';
+  if (!plan.rows.length && !plan.fatal) plan.fatal = '沒有讀到可以匯入的班' + (plan.errors.length ? '。原因：' + plan.errors.slice(0, 3).join('；') + (plan.errors.length > 3 ? '…（共 ' + plan.errors.length + ' 列）' : '') : '');
   return plan;
 }
 function doCsvImport(plan) {
