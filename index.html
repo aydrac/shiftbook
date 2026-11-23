@@ -216,7 +216,7 @@ input.time:focus{outline:none;border-color:var(--ink)}
 .chip{min-height:40px;padding:0 14px;border-radius:20px;border:1px solid var(--g3);background:var(--washi);font-size:13px}
 .chip.on{background:var(--ink);color:var(--washi);border-color:var(--ink)}
 .tpick{position:relative;height:46px;border:1px solid var(--g3);border-radius:12px;background:var(--washi);display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;min-width:0}
-.tpick input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;border:none;padding:0;margin:0}
+.tpick input{position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none;font-size:16px;border:none;padding:0;margin:0}
 .tpick:focus-within{border-color:var(--ink);box-shadow:0 0 0 2px rgba(28,28,28,.08)}
 .trow>span{font-size:13px}
 .mbox{position:relative;display:block;min-width:0}
@@ -776,7 +776,7 @@ function blank(title, sub, btns, sm) {
 
 /* ---------- ui state ---------- */
 const T0 = todayD();
-const ui = { tab: 'home', month: new Date(T0.getFullYear(), T0.getMonth(), 1), open: null, caseTab: 0, year: T0.getFullYear(), yearMode: 0, yearSel: T0.getMonth(), yearAnim: '', lastDue: 0, sheet: null, dlg: null, info: {}, fromLog: false, lsKeep: null, jig: null, swOpen: null };
+const ui = { cm: {}, cjump: null, tab: 'home', month: new Date(T0.getFullYear(), T0.getMonth(), 1), open: null, caseTab: 0, year: T0.getFullYear(), yearMode: 0, yearSel: T0.getMonth(), yearAnim: '', lastDue: 0, sheet: null, dlg: null, info: {}, fromLog: false, lsKeep: null, jig: null, swOpen: null };
 let ls = null, cf = null, bk = null, dayDs = null, dayEdit = null, pe = null;
 const $ = s => document.querySelector(s);
 const tv = m => m == null ? '' : hm(m);
@@ -792,11 +792,11 @@ function confirmBox(o) { ui.dlg = o; renderDlg(); }
 function renderDlg() {
   const o = ui.dlg, el = $('#dlg');
   if (!o) { el.innerHTML = ''; return; }
-  el.innerHTML = '<div class="scrim center" data-a="dlgno"><div class="sheet" role="dialog" aria-modal="true">' +
+  el.innerHTML = '<div class="scrim center" data-a="dlgno"><div class="sheet" role="dialog" aria-modal="true" data-a="noop">' +
     '<div class="serif" style="font-size:20px;padding-top:18px">' + esc(o.title) + '</div>' +
-    '<div class="muted" style="margin-top:8px;font-size:13px">' + esc(o.text) + '</div>' +
+    (o.text ? '<div class="muted" style="margin-top:8px;font-size:13px">' + esc(o.text) + '</div>' : '') + (o.html || '') +
     (o.opts ? '<div style="margin-top:12px">' + o.opts.map((x, i) => '<button class="go dlgopt' + (x.line ? ' line' : '') + '" data-a="dlgopt" data-i="' + i + '" style="height:auto;min-height:52px;padding:8px 12px;flex-direction:column">' + esc(x.label) + (x.sub ? '<small>' + esc(x.sub) + '</small>' : '') + '</button>').join('') + '<button class="go line dlgopt" data-a="dlgno">' + esc(o.cancel || '取消，先不儲存') + '</button></div>' : '') +
-    (o.opts ? '' : '<div style="display:flex;gap:8px;margin-top:20px"><button class="go line" data-a="dlgno" style="height:48px">取消</button><button class="go' + (o.danger ? ' danger' : '') + '" data-a="dlgok" style="height:48px">' + esc(o.ok) + '</button></div>') + '</div></div>';
+    (o.opts || o.custom ? '' : '<div style="display:flex;gap:8px;margin-top:20px"><button class="go line" data-a="dlgno" style="height:48px">取消</button><button class="go' + (o.danger ? ' danger' : '') + '" data-a="dlgok" style="height:48px">' + esc(o.ok) + '</button></div>') + '</div></div>';
 }
 
 /* ---------- main render ---------- */
@@ -829,11 +829,27 @@ function onScroll() {
   const big = $('#bignum');
   if (big) top.classList.toggle('compact', big.getBoundingClientRect().bottom < top.getBoundingClientRect().height - 20);
 }
+/* 點月曆表頭：選年份＋3×4 月份直接跳轉 */
+function monthPickHtml(py) {
+  const rg = yearRange(), ys = []; for (let y = Math.min(rg[0], T0.getFullYear() - 3); y <= rg[1]; y++) ys.push(y);
+  const has = {}; for (const s of db.shifts) if (+s.date.slice(0, 4) === py) has[+s.date.slice(5, 7)] = 1;
+  const cur = ui.month, nowY = T0.getFullYear(), nowM = T0.getMonth();
+  const EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  let h = '<div class="pills" style="margin-top:12px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px" id="mpys">' +
+    ys.map(y => '<button class="pl' + (y === py ? ' on' : '') + '" data-a="mpyear" data-y="' + y + '">' + y + '</button>').join('') + '</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px">';
+  for (let i = 0; i < 12; i++) {
+    const on = py === cur.getFullYear() && i === cur.getMonth(), now = py === nowY && i === nowM;
+    h += '<button class="pl' + (on ? ' on' : '') + '" data-a="mpmon" data-y="' + py + '" data-m="' + i + '" style="height:56px;flex-direction:column;justify-content:center;gap:0;padding:0;line-height:1.25;' + (now && !on ? 'border-color:var(--ink);' : '') + '" aria-label="' + py + ' 年 ' + (i + 1) + ' 月' + (has[i + 1] ? '，有排班' : '') + '"><span style="font-size:17px;font-weight:' + (has[i + 1] ? 600 : 400) + '">' + (i + 1) + ' 月</span><span style="font-size:11px;opacity:.65">' + EN[i] + (has[i + 1] ? ' ·' : '') + '</span></button>';
+  }
+  return h + '</div><button class="go line dlgopt" data-a="mtoday" style="margin-top:14px">回到本月（' + nowY + ' 年 ' + (nowM + 1) + ' 月）</button>';
+}
+function openMonthPick(py) { ui.mpy = py; confirmBox({ title: '選擇年月', custom: true, html: monthPickHtml(py) + '<div class="muted" style="font-size:11px;margin-top:8px">粗體的月份有排班；點空白處關閉</div>' }); const el = document.querySelector('#mpys .pl.on'); if (el && el.scrollIntoView) el.scrollIntoView({ inline: 'center', block: 'nearest' }); }
 function monthRow() {
   const m = ui.month;
   return '<div class="between" style="margin:0 -12px">' +
     '<button class="iconbtn" data-a="mprev" aria-label="上個月">' + I.l + '</button>' +
-    '<button data-a="mtoday" style="border:none;background:transparent;min-height:44px;font-size:20px" class="serif" aria-label="回到這個月">' + m.getFullYear() + ' 年 ' + (m.getMonth() + 1) + ' 月</button>' +
+    '<button data-a="mpick" style="border:none;background:transparent;min-height:44px;font-size:20px" class="serif" aria-label="選擇年份與月份">' + m.getFullYear() + ' 年 ' + (m.getMonth() + 1) + ' 月<span class="muted" style="font-size:12px;margin-left:4px">▾</span></button>' +
     '<button class="iconbtn" data-a="mnext" aria-label="下個月">' + I.r + '</button></div>';
 }
 
@@ -922,8 +938,33 @@ function bumpPaid(amount) {
 }
 
 /* ---------- 案件 ---------- */
-function caseTotals(c) {
-  const k = mkey(ui.month);
+/* 案件出勤表顯示的月份：進行中案件跟首頁月曆（ui.month）；已結束案件各自記住（ui.cm），預設是最後一次工作的月份 */
+function caseMonth(c) {
+  if (c.active) return ui.month;
+  if (ui.cm[c.id]) return ui.cm[c.id];
+  let last = '';
+  for (const s of db.shifts) if (s.caseId === c.id && s.date > last) last = s.date;
+  return last ? new Date(+last.slice(0, 4), +last.slice(5, 7) - 1, 1) : new Date(ui.month.getFullYear(), ui.month.getMonth(), 1);
+}
+function caseYears(c) {
+  const ys = {}; for (const s of db.shifts) if (s.caseId === c.id) { const k = s.date.slice(0, 4), m = +s.date.slice(5, 7); (ys[k] = ys[k] || {})[m] = 1; }
+  return ys;
+}
+function caseJump(c, m) {
+  const ys = caseYears(c), y = m.getFullYear(), list = Object.keys(ys).map(Number);
+  if (list.indexOf(y) < 0) list.push(y);
+  list.sort((a, b) => a - b);
+  let h = '<div class="box" style="margin-top:8px;padding:10px 12px"><div class="pills" style="margin-top:0">' +
+    list.map(v => '<button class="pl' + (v === y ? ' on' : '') + '" data-a="cyear" data-c="' + c.id + '" data-y="' + v + '">' + v + '</button>').join('') +
+    '</div><div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-top:10px">';
+  for (let i = 1; i <= 12; i++) {
+    const has = ys[y] && ys[y][i], on = i === m.getMonth() + 1;
+    h += '<button class="pl' + (on ? ' on' : '') + '" data-a="cmon" data-c="' + c.id + '" data-y="' + y + '" data-m="' + (i - 1) + '" style="padding:0;justify-content:center;font-weight:' + (has ? 600 : 400) + (has || on ? '' : ';opacity:.5') + '" aria-label="' + y + ' 年 ' + i + ' 月' + (has ? '，有出勤' : '') + '">' + i + '月</button>';
+  }
+  return h + '</div><div class="muted" style="font-size:11px;margin-top:8px">粗體的月份有出勤</div></div>';
+}
+function caseTotals(c, mon) {
+  const k = mkey(mon || ui.month);
   let days = {}, amt = 0, mdays = {}, mamt = 0;
   for (const s of db.shifts) if (s.caseId === c.id) {
     days[s.date] = 1; amt += s.amount;
@@ -939,12 +980,12 @@ function payText(c) {
 }
 function viewCases() {
   const act = db.cases.filter(c => c.active), end = db.cases.filter(c => !c.active);
-  const list = ui.caseTab ? end : act, m = ui.month, y = m.getFullYear(), mo = m.getMonth(), ts = ymd(todayD());
+  const list = ui.caseTab ? end : act, ts = ymd(todayD());
   let h = '<header class="top"><div class="toprow"><div class="pills" style="margin:0"><button class="pl' + (ui.caseTab ? '' : ' on') + '" data-a="ctab" data-v="0">進行中 ' + act.length + '</button><button class="pl' + (ui.caseTab ? ' on' : '') + '" data-a="ctab" data-v="1">已結束 ' + end.length + '</button></div><button class="addbtn" data-a="newcase">' + I.plusS + '新增案件</button></div>' +
     '</header><div style="margin-top:8px">';
   if (!list.length) h += blank(ui.caseTab ? '沒有已結束的案件' : '還沒有進行中的案件', ui.caseTab ? '' : '新增一個案件，就可以開始排班', ui.caseTab ? '' : '<button class="go" data-a="newcase" style="margin-top:16px">新增案件</button>');
   for (const c of list) {
-    const t = caseTotals(c), open = ui.open === c.id;
+    const m = caseMonth(c), y = m.getFullYear(), mo = m.getMonth(), t = caseTotals(c, m), open = ui.open === c.id, cd = c.active ? '' : ' data-c="' + c.id + '"';
     h += '<div class="case' + (open ? ' open' : '') + '"><button data-a="copen" data-id="' + c.id + '" aria-expanded="' + open + '">' + kamon(c.mark, 22, 1.6) +
       '<span style="flex:1;min-width:0"><span style="display:block;font-size:17px;font-weight:500">' + esc(c.name) + '</span><span class="muted" style="display:block;font-size:12px;margin-top:3px">' + esc(sourceName(c.sourceId)) + ' · ' + payText(c) + '</span></span>' +
       '<span style="text-align:right"><span class="num" style="display:block;font-size:16px">' + money(c.active ? t.mamt : t.amt) + '</span><span class="muted" style="display:block;font-size:12px;margin-top:3px">' + (c.active ? (mo + 1) + ' 月 ' + t.mn + ' 天' : '共 ' + t.days + ' 天') + '</span></span>' + I.chev + '</button>';
@@ -959,7 +1000,8 @@ function viewCases() {
           : '<span class="sq' + (ds === ts ? ' t' : '') + '">' + d + '</span>';
       }
       h += '<div class="det' + (ui.na ? ' na' : '') + '"><div class="grid2" style="margin-top:0"><div class="stat"><div class="muted" style="font-size:12px">累計天數</div><div class="serif num" style="font-size:24px;margin-top:4px">' + t.days + ' 天</div></div><div class="stat"><div class="muted" style="font-size:12px">累計收入</div><div class="serif num" style="font-size:24px;margin-top:4px">' + money(t.amt) + '</div></div></div>' +
-        '<div class="between" style="margin-top:14px"><div class="row" style="margin-left:-12px"><button class="iconbtn" data-a="mprev" aria-label="上個月">' + I.l + '</button><span class="muted" style="font-size:12px">' + y + ' 年 ' + (mo + 1) + ' 月出勤</span><button class="iconbtn" data-a="mnext" aria-label="下個月">' + I.r + '</button></div><span class="muted" style="font-size:12px">' + esc(cycleText(c)) + '</span></div>' +
+        '<div class="between" style="margin-top:14px"><div class="row" style="margin-left:-12px"><button class="iconbtn" data-a="mprev"' + cd + ' aria-label="上個月">' + I.l + '</button>' + (c.active ? '<span class="muted" style="font-size:12px">' + y + ' 年 ' + (mo + 1) + ' 月出勤</span>' : '<button data-a="cjump" data-c="' + c.id + '" class="muted" style="font-size:12px;border:none;background:transparent;padding:8px 4px;text-decoration:underline" aria-expanded="' + (ui.cjump === c.id) + '">' + y + ' 年 ' + (mo + 1) + ' 月出勤 ▾</button>') + '<button class="iconbtn" data-a="mnext"' + cd + ' aria-label="下個月">' + I.r + '</button></div><span class="muted" style="font-size:12px">' + esc(cycleText(c)) + '</span></div>' +
+        (!c.active && ui.cjump === c.id ? caseJump(c, m) : '') +
         '<div class="wk" style="font-size:10px">' + WD.map(w => '<span>' + w + '</span>').join('') + '</div><div class="sqs">' + g + '</div>' +
         '<div class="muted" style="font-size:12px;margin-top:6px">' + (ui.jig === c.id ? '點日期右上角的 × 刪除那天的班，點空白處完成' : '點有顏色的日期可以修改那天的時間；長按日期可刪除班') + '</div>' +
         (c.note ? '<div class="box" style="font-size:13px;white-space:pre-wrap">' + esc(c.note) + '</div>' : '') +
@@ -1062,7 +1104,7 @@ function restCard(y, mo) {
 
 /* ---------- 使用教學（第一次開啟自動跳出） ---------- */
 const CFG = window.SHIFTBOOK_CONFIG || {};
-const APP_VER = 'r11';
+const APP_VER = 'r13';
 const GKEY = 'shiftbook-guide-seen';
 function guideSeen() { try { return localStorage.getItem(GKEY); } catch (e) { return null; } }
 function markGuideSeen() { try { localStorage.setItem(GKEY, '1'); } catch (e) {} }
@@ -1295,7 +1337,7 @@ function ctxRefresh(c, f, typing) {
   else renderSheet(true);
 }
 function tpick(k, v, label, extra) {
-  return '<label class="tpick"><span class="num">' + (v == null ? '--:--' : hm(v)) + '</span><input type="time" step="300" data-i="' + k + '"' + (extra || '') + ' value="' + tv(v) + '" aria-label="' + label + '"></label>';
+  return '<div class="tpick"><span class="num">' + (v == null ? '--:--' : hm(v)) + '</span><input type="time" step="300" data-i="' + k + '"' + (extra || '') + ' value="' + tv(v) + '" aria-label="' + label + '"></div>';
 }
 function timePair(key, s, e, labelA, labelB) {
   return '<div class="trow">' + tpick(key + '-s', s, labelA || '開始時間') + '<span>到</span>' + tpick(key + '-e', e, labelB || '結束時間') + '</div>';
@@ -1651,6 +1693,56 @@ function applyScope(oc, nc, from) {
   return before;
 }
 const sgn = n => (n > 0 ? '+' : n < 0 ? '−' : '') + money(Math.abs(n));
+/* 改了哪些設定（舊 → 新），給「先看明細」用 */
+function changeLines(oc, nc) {
+  const L = [], rg = (a, b) => hm(a) + '–' + hm(b);
+  if (oc.payType !== nc.payType) L.push('計薪方式：' + (PAYL[oc.payType] || oc.payType) + ' → ' + (PAYL[nc.payType] || nc.payType));
+  if (nc.payType === 'once' && oc.once !== nc.once) L.push('單次金額：' + money(oc.once) + ' → ' + money(nc.once));
+  const op = {}; (oc.presets || []).forEach(p => { op[p.id] = p; });
+  (nc.presets || []).forEach(p => {
+    const o = op[p.id], nm = rg(p.start, p.end);
+    if (!o) L.push('新增班別 ' + nm + '：' + money(p.amount));
+    else {
+      if (o.start !== p.start || o.end !== p.end) L.push('班別時間：' + rg(o.start, o.end) + ' → ' + nm);
+      if (o.amount !== p.amount) L.push('班別 ' + nm + ' 金額：' + money(o.amount) + ' → ' + money(p.amount));
+      delete op[p.id];
+    }
+  });
+  Object.keys(op).forEach(k => L.push('刪除班別 ' + rg(op[k].start, op[k].end) + '（' + money(op[k].amount) + '）'));
+  const oh = oc.hourly || {}, nh = nc.hourly || {};
+  if (oh.dayRate !== nh.dayRate) L.push('日間時薪：' + money(oh.dayRate || 0) + ' → ' + money(nh.dayRate || 0));
+  if (oh.nightRate !== nh.nightRate) L.push('夜間時薪：' + money(oh.nightRate || 0) + ' → ' + money(nh.nightRate || 0));
+  if (oh.dayStart !== nh.dayStart || oh.dayEnd !== nh.dayEnd) L.push('日間時段：' + rg(oh.dayStart || 0, oh.dayEnd || 0) + ' → ' + rg(nh.dayStart || 0, nh.dayEnd || 0));
+  const oa = {}; (oc.allows || []).forEach(a => { oa[a.n] = a.v; });
+  (nc.allows || []).filter(a => a.v > 0).forEach(a => {
+    if (!(a.n in oa)) L.push('新增津貼「' + a.n + '」' + money(a.v));
+    else { if (oa[a.n] !== a.v) L.push('津貼「' + a.n + '」：' + money(oa[a.n]) + ' → ' + money(a.v)); delete oa[a.n]; }
+  });
+  Object.keys(oa).forEach(n => { if (oa[n] > 0) L.push('移除津貼「' + n + '」' + money(oa[n])); });
+  const orr = {}; (oc.rates || []).forEach(r => { orr[r.id || r] = r; });
+  (nc.rates || []).forEach(r => {
+    const id = r.id || r, o = orr[id];
+    if (!o) L.push('新增費率「' + (r.n || id) + '」×' + r.m);
+    else { if (o.m !== r.m) L.push('費率「' + (r.n || id) + '」：×' + o.m + ' → ×' + r.m); delete orr[id]; }
+  });
+  Object.keys(orr).forEach(id => L.push('移除費率「' + (orr[id].n || id) + '」'));
+  return L.length ? L : ['薪資設定有調整'];
+}
+/* 明細：哪幾天的班、金額前後；今天之前與今天起分開列 */
+function scopeDetailHtml(oc, nc, today) {
+  const past = [], fut = []; let skip = 0;
+  for (const s of db.shifts) if (s.caseId === oc.id) {
+    const r = recalcShift(s, oc, nc); if (!r) { skip++; continue; }
+    if (r.amount !== s.amount) (s.date < today ? past : fut).push({ s, to: r.amount });
+  }
+  const byDate = (a, b) => (a.s.date < b.s.date ? -1 : a.s.date > b.s.date ? 1 : a.s.start - b.s.start);
+  const tot = a => a.reduce((t, x) => t + x.to - x.s.amount, 0);
+  const row = x => '<div style="display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:6px 0;border-bottom:1px solid var(--g2)"><span>' + esc(x.s.date.replace(/-/g, '/')) + '（' + WD[wd0(pd(x.s.date))] + '）<span class="muted"> ' + hm(x.s.start) + '–' + hm(x.s.end) + '</span></span><span class="num" style="white-space:nowrap">' + money(x.s.amount) + ' → ' + money(x.to) + ' <span class="muted">(' + sgn(x.to - x.s.amount) + ')</span></span></div>';
+  const grp = (t, a) => '<div style="margin-top:12px;font-size:13px;font-weight:600">' + t + '：' + (a.length ? a.length + ' 班，合計 ' + sgn(tot(a)) : '沒有班的金額會變動') + '</div>' + (a.length ? '<div style="max-height:26vh;overflow:auto;-webkit-overflow-scrolling:touch">' + a.sort(byDate).map(row).join('') + '</div>' : '');
+  return '<div class="box" style="margin-top:10px;font-size:13px"><b>修改了什麼</b><ul style="margin:6px 0 0;padding-left:18px">' + changeLines(oc, nc).map(l => '<li>' + esc(l) + '</li>').join('') + '</ul></div>' +
+    grp('今天（' + md(today) + '）之前', past) + grp('今天起', fut) +
+    (skip ? '<div class="muted" style="font-size:12px;margin-top:10px">另有 ' + skip + ' 班是你手動改過金額的，不會被更動。</div>' : '');
+}
 
 /* 補排過去的班：撥款日已過的，問是不是早就領過了 */
 function askLate(c, ids) {
@@ -1667,6 +1759,7 @@ function askLate(c, ids) {
 }
 
 /* ---------- actions ---------- */
+function caseShift(id, delta) { const m = caseMonth(caseById(id)); ui.cm[id] = new Date(m.getFullYear(), m.getMonth() + delta, 1); }
 function setMonth(delta) { ui.month = new Date(ui.month.getFullYear(), ui.month.getMonth() + delta, 1); }
 function goYear(dir) {
   const rg = yearRange(), y = ui.year + dir;
@@ -1848,11 +1941,17 @@ const A = {
   close: () => closeSheet(),
   toastact: () => { const f = toastFn; $('#toast').innerHTML = ''; if (f) f(); },
   dlgno: () => { ui.dlg = null; renderDlg(); },
-  dlgopt: el => { const o = ui.dlg.opts[+el.dataset.i]; ui.dlg = null; renderDlg(); o.fn(); },
+  dlgopt: el => { const o = ui.dlg.opts[+el.dataset.i]; if (!o.keep) { ui.dlg = null; renderDlg(); } o.fn(); },
   dlgok: () => { const f = ui.dlg.fn; ui.dlg = null; renderDlg(); f(); },
-  mprev: () => keepScroll(() => { setMonth(-1); render(); }),
-  mnext: () => keepScroll(() => { setMonth(1); render(); }),
-  mtoday: () => { ui.month = new Date(T0.getFullYear(), T0.getMonth(), 1); render(); },
+  mprev: el => keepScroll(() => { if (el.dataset.c) caseShift(el.dataset.c, -1); else setMonth(-1); render(); }),
+  mnext: el => keepScroll(() => { if (el.dataset.c) caseShift(el.dataset.c, 1); else setMonth(1); render(); }),
+  cjump: el => { ui.cjump = ui.cjump === el.dataset.c ? null : el.dataset.c; keepScroll(render); },
+  cyear: el => { const m = caseMonth(caseById(el.dataset.c)); ui.cm[el.dataset.c] = new Date(sv(el, 'y'), m.getMonth(), 1); keepScroll(render); },
+  cmon: el => { ui.cm[el.dataset.c] = new Date(sv(el, 'y'), sv(el, 'm'), 1); ui.cjump = null; ui.jig = null; keepScroll(render); },
+  mtoday: () => { ui.month = new Date(T0.getFullYear(), T0.getMonth(), 1); ui.dlg = null; renderDlg(); render(); },
+  mpick: () => openMonthPick(ui.month.getFullYear()),
+  mpyear: el => openMonthPick(sv(el, 'y')),
+  mpmon: el => { ui.month = new Date(sv(el, 'y'), sv(el, 'm'), 1); ui.dlg = null; renderDlg(); render(); window.scrollTo(0, 0); },
   day: el => { dayDs = el.dataset.d; dayEdit = null; ui.swOpen = null; openSheet('day'); },
   log: () => openLog(null),
   logday: el => openLog(el.dataset.d),
@@ -1979,12 +2078,12 @@ const A = {
   /* 案件 */
   newcase: () => openCase(null),
   editcase: el => openCase(el.dataset.id),
-  copen: el => { ui.open = ui.open === el.dataset.id ? null : el.dataset.id; ui.jig = null; keepScroll(render); },
-  ctab: el => { ui.caseTab = sv(el, 'v'); ui.open = null; ui.jig = null; render(); },
+  copen: el => { ui.open = ui.open === el.dataset.id ? null : el.dataset.id; ui.jig = null; ui.cjump = null; keepScroll(render); },
+  ctab: el => { ui.caseTab = sv(el, 'v'); ui.open = null; ui.jig = null; ui.cjump = null; render(); },
   sqdel: el => {
     const cid = el.dataset.c, ds = el.dataset.d, gone = db.shifts.filter(s => s.caseId === cid && s.date === ds); if (!gone.length) return;
     db.shifts = db.shifts.filter(s => gone.indexOf(s) < 0); save();
-    if (!db.shifts.some(s => s.caseId === cid && s.date.slice(0, 7) === mkey(ui.month))) ui.jig = null;
+    if (!db.shifts.some(s => s.caseId === cid && s.date.slice(0, 7) === mkey(caseMonth(caseById(cid))))) ui.jig = null;
     quiet(() => keepScroll(render));
     toast('已刪除 ' + md(ds) + ' 的班', '復原', () => { gone.forEach(s => db.shifts.push(s)); save(); quiet(() => keepScroll(render)); });
   },
@@ -2065,11 +2164,13 @@ const A = {
         const today = ymd(todayD()), all = scopeImpact(oc, c, ''), fut = scopeImpact(oc, c, today);
         const nPast = db.shifts.filter(s => s.caseId === oc.id && s.date < today).length;
         const info = x => x.n ? '會更新 ' + x.n + ' 班，金額 ' + sgn(x.delta) : '沒有班的金額會變動';
-        confirmBox({ title: '薪資設定有更動', text: '「' + c.name + '」已經排了 ' + db.shifts.filter(s => s.caseId === oc.id).length + ' 班（其中 ' + nPast + ' 班在今天之前）。要把新設定套用到哪些班？已入帳的金額不會變，自己手動改過金額的班也會保留。', opts: [
+        const scopeOpts = [
           { label: '連同過去全部套用', sub: info(all), fn: () => finish('', 1) },
           { label: '只套用今天（' + md(today) + '）起的班', sub: info(fut), fn: () => finish(today, 1) },
           { label: '只用在之後新排的班', sub: '已排好的班都維持原樣', fn: () => finish('', 0), line: true }
-        ] });
+        ];
+        const showDetail = () => confirmBox({ title: '會變動的明細', text: '看完明細後，在下面選要套用到哪些班。', html: scopeDetailHtml(oc, c, today), opts: scopeOpts });
+        confirmBox({ title: '薪資設定有更動', text: '「' + c.name + '」已經排了 ' + db.shifts.filter(s => s.caseId === oc.id).length + ' 班（其中 ' + nPast + ' 班在今天之前）。要把新設定套用到哪些班？已入帳的金額不會變，自己手動改過金額的班也會保留。', opts: [{ label: '先看明細', sub: '列出改了什麼、哪幾天的班、金額前後', fn: showDetail, keep: true, line: true }].concat(scopeOpts) });
         return;
       }
     }
@@ -2270,7 +2371,21 @@ document.addEventListener('click', e => {
 }, true);
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (ui.dlg) A.dlgno(); else if (ui.sheet) closeSheet(); } });
 window.addEventListener('scroll', onScroll, { passive: true });
-document.addEventListener('click', e => { const i = e.target.closest('.tpick input'); if (i && i.showPicker) { try { i.showPicker(); } catch (x) {} } });
+/* 時間欄位：input 不接收觸控（pointer-events:none），改在 .tpick 上判斷「真的是點一下」才開滾動盤。
+   手指移動超過 8px，或 350ms 內頁面有捲動（含慣性捲動時按住停下）都不開。 */
+(function () {
+  let px = 0, py = 0, moved = false, lastScroll = 0;
+  document.addEventListener('scroll', function () { lastScroll = Date.now(); }, true);
+  document.addEventListener('pointerdown', function (e) { px = e.clientX; py = e.clientY; moved = false; if (Date.now() - lastScroll < 350) moved = true; }, true);
+  document.addEventListener('pointermove', function (e) { if (!moved && (Math.abs(e.clientX - px) > 8 || Math.abs(e.clientY - py) > 8)) moved = true; }, true);
+  document.addEventListener('click', function (e) {
+    const t = e.target.closest ? e.target.closest('.tpick') : null; if (!t) return;
+    const i = t.querySelector('input'); if (!i) return;
+    if (moved || Date.now() - lastScroll < 350) { moved = false; return; }
+    if (i.showPicker) { try { i.showPicker(); return; } catch (x) {} }
+    try { i.focus(); } catch (x) {}
+  });
+})();
 function route() { const h = (location.hash || '').slice(1); ui.tab = ['home', 'cases', 'more'].indexOf(h) >= 0 ? h : 'home'; ui.jig = null; if (ui.sheet) { ui.sheet = null; $('#sheet').innerHTML = ''; document.body.classList.remove('has-sheet'); } render(); window.scrollTo(0, 0); if (h === 'guide') openGuide(0); else if (h === 'contact') openContact(); else if (h === 'privacy') openSheet('privacy'); }
 window.addEventListener('hashchange', route);
 try { if (syncCash()) save(); } catch (e) {}
