@@ -420,7 +420,7 @@ const DEF_RATES = () => [
   { id: 'langc', name: '語言', mult: 1.5, scope: 'case' },
   
 ];
-function emptyDb() { return { v: 2, sources: [], cases: [], shifts: [], payments: [], settings: { kamonNames: true, rates: DEF_RATES(), allowNames: ['伙食', '交通', '語言'], v3: true } }; }
+function emptyDb() { return { v: 2, sources: [], cases: [], shifts: [], payments: [], skipCash: [], settings: { kamonNames: true, rates: DEF_RATES(), allowNames: ['伙食', '交通', '語言'], v3: true } }; }
 function migrate(d) {
   const e = emptyDb(); for (const k in e) if (d[k] == null) d[k] = e[k];
   d.settings = Object.assign({ kamonNames: true }, d.settings);
@@ -472,6 +472,7 @@ function loadDb() {
 }
 let db = null;
 function save() {
+  try { if (db) syncCash(); } catch (e) {}
   if (!store) return;
   try { store.setItem(KEY, JSON.stringify(db)); }
   catch (e) { toast('這個瀏覽器無法儲存資料，請記得匯出備份'); }
@@ -574,6 +575,7 @@ const sourceName = id => { const s = db.sources.find(x => x.id === id); return s
 const PAYL = { time: '依時間計薪', once: '單次' };
 function cycleText(c) {
   const cy = c.cycle;
+  if (cy.type === 'cash') return '現領 · 當天領現金';
   if (hasRule(c)) return '週收 · ' + (c.payRule.off ? '隔週' : '當週') + '週' + WD[c.payRule.wd];
   if (cy.type === 'monthly') return '月收 · 每月 ' + cy.monthDay + ' 日';
   if (cy.type === 'weekly') return '週收 · 每週' + WD[cy.weekday];
@@ -606,7 +608,31 @@ function periodShifts(c, p) {
     .sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : (a.start || 0) - (b.start || 0));
 }
 function nextPayDate(c, p) { return payDates(c, addD(p, 1), addD(p, 400))[0] || null; }
+/* 當天領現：每個班當天就領到現金，沒有「撥款日」。班結束後自動記為已入帳（可在收款紀錄修改金額或取消） */
+const isCash = c => !!(c && c.cycle && c.cycle.type === 'cash');
+function syncCash() {
+  const now = new Date(), ts = ymd(now), nowMin = now.getHours() * 60 + now.getMinutes();
+  if (!Array.isArray(db.skipCash)) db.skipCash = [];
+  const skip = new Set(db.skipCash), cashIds = new Set(db.cases.filter(isCash).map(c => c.id)), by = {}, have = {};
+  let ch = false;
+  for (const x of db.shifts) if (cashIds.has(x.caseId)) (by[x.caseId + '|' + x.date] = by[x.caseId + '|' + x.date] || []).push(x);
+  for (const m of db.payments) have[m.caseId + '|' + m.payDate] = m;
+  for (const k in by) {
+    const ds = k.slice(k.indexOf('|') + 1); if (ds > ts) continue;
+    const list = by[k]; let ended = ds < ts;
+    if (!ended) ended = list.every(x => x.end > x.start && x.end <= nowMin);
+    if (!ended) continue;
+    let amount = 0; for (const x of list) amount += x.amount;
+    const ex = have[k];
+    if (!ex) { if (skip.has(k)) continue; db.payments.push({ id: uid(), caseId: k.slice(0, k.indexOf('|')), payDate: ds, amount, at: ds, cash: true }); ch = true; }
+    else if (ex.cash && !ex.manual && ex.amount !== amount) { ex.amount = amount; ch = true; }
+  }
+  const keep = db.payments.filter(m => !(m.cash && (!cashIds.has(m.caseId) || (!m.manual && !by[m.caseId + '|' + m.payDate]))));
+  if (keep.length !== db.payments.length) { db.payments = keep; ch = true; }
+  return ch;
+}
 function payDates(c, from, to) {
+  if (isCash(c)) return [];
   if (hasRule(c)) return ruleDates(c, from, to);
   const out = [], cy = c.cycle;
   if (cy.type === 'monthly') {
@@ -1084,7 +1110,7 @@ const GSTEPS = [
       '<ol class="gd-ol"><li><span>點下方 <b>案件</b>，再點 <b>新增案件</b>。</span></li>' +
       '<li><span>填 <b>名稱</b>、<b>派案來源</b>。</span></li>' +
       '<li><span>設定 <b>薪資</b>（依時間算，或單次固定）。</span></li>' +
-      '<li><span>選 <b>收款週期</b>（週收、雙週收、月收）。</span></li>' +
+      '<li><span>選 <b>收款週期</b>（週收、雙週收、月收、當天領現）。</span></li>' +
       '<li><span>按 <b>儲存</b>。</span></li></ol>' +
       '<div class="gd-ok">想先逛逛？點首頁的「先看範例資料」。</div>';
   } },
@@ -1232,7 +1258,7 @@ const INFO = {
   work: '若只有某幾天上班時間不同，亦可於月曆選日期後自行增減時數',
   allow: '沒有就空著。有的話，每上一天班就加上去，不會跟著倍率變。',
   rate: '這個案件固定會有的加成，例如語言。颱風假、年假這類某幾天才有的，到月曆點那天再選。多個加成一起用時會相加。',
-  cycle: '決定錢多久進帳一次，首頁會依此算出下一次入帳日。',
+  cycle: '決定錢多久進帳一次，首頁會依此算出下一次入帳日。當天做完就領現金的案件選「當天領現」，班結束後會自動記為已入帳。',
   mark: '每個案件在月曆上會顯示不同圖標，方便分辨。',
   bkwhy: '為什麼要備份：資料只存在這支手機的瀏覽器裡，換手機、清除瀏覽器資料或重設手機，資料就會不見。怎麼備份：按「下載備份檔」存到手機的檔案或電腦；下載不了就按「複製備份內容」，貼到備忘錄或傳訊息給自己。要還原時，到下面「從備份檔還原」選那個檔案。建議每個月備份一次。',
   csvhelp: '想把過去幾年的班表一次放進來，可以準備一個 CSV 檔（Excel 另存新檔選 CSV UTF-8 就行）。欄位：日期、案件名稱、開始時間、結束時間，必填；基本薪資、加給、倍率、派案來源、備註，選填。先按「下載範本」看格式，或按「複製給 Gemini 的指令」請它整理成這個格式。',
@@ -1392,13 +1418,15 @@ function cfPayLine() {
   return hm(cf.work.start) + '–' + hm(cf.work.end) + ' · ' + money(p.amount) + ex;
 }
 function cfFoot() {
-  const cyc = !cf.cycle.type ? '還沒選多久領一次錢' : cf.cycle.type === 'monthly' ? '每月 ' + cf.cycle.monthDay + ' 日入帳' : (cf.cycle.type === 'weekly' ? '每週' : '隔週') + WD[cf.cycle.weekday] + '入帳';
+  const cyc = !cf.cycle.type ? '還沒選多久領一次錢' : cf.cycle.type === 'cash' ? '當天領現金' : cf.cycle.type === 'monthly' ? '每月 ' + cf.cycle.monthDay + ' 日入帳' : (cf.cycle.type === 'weekly' ? '每週' : '隔週') + WD[cf.cycle.weekday] + '入帳';
   return '<span>' + cfPayLine() + '</span><span>' + cyc + '</span>';
 }
 function cycleInner() {
-  const cy = cf.cycle; let b = '<div class="seg">' + [['weekly', '每週'], ['biweekly', '每兩週'], ['monthly', '每月']].map(t => '<button class="' + (cy.type === t[0] ? 'on' : '') + '" data-a="cfcyc" data-v="' + t[0] + '">' + t[1] + '</button>').join('') + '</div>';
+  const cy = cf.cycle; let b = '<div class="seg">' + [['weekly', '每週'], ['biweekly', '每兩週'], ['monthly', '每月'], ['cash', '當天領現']].map(t => '<button class="' + (cy.type === t[0] ? 'on' : '') + '" data-a="cfcyc" data-v="' + t[0] + '">' + t[1] + '</button>').join('') + '</div>';
   if (cy.type === 'weekly' && cf.payRule) b += '<div class="muted" style="font-size:13px;margin-top:10px">已設定入帳規則：週' + WD[cf.payRule.from] + '到週' + WD[ruleEnd(cf.payRule)] + '的班，' + (cf.payRule.off ? '隔週' : '當週') + '週' + WD[cf.payRule.wd] + '入帳。要修改請回首頁，長按「即將入帳」的案件。</div>';
-  if (cy.type && cy.type !== 'monthly') {
+  if (cy.type === 'cash') {
+    b += '<div class="muted" style="font-size:13px;margin-top:10px">當天做完就領現金。班結束後會自動記為已入帳，不會出現在「即將入帳」。如果某天沒領到，可到「更多 → 收款紀錄」取消或改金額。</div>';
+  } else if (cy.type && cy.type !== 'monthly') {
     b += '<div class="row" style="gap:5px;margin-top:10px;justify-content:space-between">' + WD.map((w, i) => '<button class="pl wd' + (cy.weekday === i ? ' on' : '') + '" data-a="cfwd" data-v="' + i + '" aria-label="週' + w + '">' + w + '</button>').join('') + '</div>';
     if (cy.type === 'biweekly') {
       const t = todayD(), n1 = addD(t, (cy.weekday - wd0(t) + 7) % 7), n2 = addD(n1, 7);
@@ -1487,7 +1515,7 @@ function sheetPayments() {
   for (const p of list) {
     const c = caseById(p.caseId), k = p.payDate.slice(0, 7);
     if (k !== last) { b += '<div class="cap muted" style="margin-top:16px">' + k.replace('-', ' 年 ') + ' 月</div>'; last = k; }
-    b += '<div class="dline">' + (c ? kamon(c.mark, 18, 1.8) : '') + '<div style="flex:1"><div style="font-weight:500">' + esc(c ? c.name : '已刪除案件') + '</div><div class="muted num" style="font-size:12px">' + md(p.payDate) + ' 撥款</div></div>' +
+    b += '<div class="dline">' + (c ? kamon(c.mark, 18, 1.8) : '') + '<div style="flex:1"><div style="font-weight:500">' + esc(c ? c.name : '已刪除案件') + '</div><div class="muted num" style="font-size:12px">' + md(p.payDate) + (p.cash ? ' 當天領現' : ' 撥款') + '</div></div>' +
       '<input class="money" style="width:104px" type="number" inputmode="numeric" data-i="pay-amt" data-id="' + p.id + '" value="' + p.amount + '" aria-label="入帳金額"><button class="iconbtn" data-a="delpay" data-id="' + p.id + '" aria-label="取消這筆入帳">' + I.x + '</button></div>';
   }
   return { label: '收款紀錄', head: headRow('', '收款紀錄'), body: b + '</div>' };
@@ -2000,7 +2028,7 @@ const A = {
     const name = (cf.name || '').trim();
     let err = '';
     if (!name) err = '請在最上面的黑色卡片輸入個案名稱';
-    else if (!cf.cycle.type) err = '請選多久領一次錢（每週、每兩週或每月）';
+    else if (!cf.cycle.type) err = '請選多久領一次錢（每週、每兩週、每月或當天領現）';
     else if (cf.payType === 'time' && !cf.presets.some(p => p.amount > 0) && !(cf.hourly.dayRate > 0 || cf.hourly.nightRate > 0)) err = '請填班別薪資或時薪，至少一種';
     else if (cf.payType === 'time' && priceFor(cf, cf.work.start, cf.work.end).amount <= 0) err = '平常上班時間算不出金額，請檢查班別薪資或時薪';
     else if (cf.payType === 'once' && !(cf.once > 0)) err = '請填入單次金額';
@@ -2087,8 +2115,10 @@ const A = {
     db.sources = db.sources.filter(s => s.id !== id); save(); renderSheet(true);
   },
   delpay: el => {
-    const p = db.payments.find(x => x.id === el.dataset.id); db.payments = db.payments.filter(x => x !== p); save(); renderSheet(true); render();
-    toast('已取消這筆入帳', '復原', () => { db.payments.push(p); save(); if (ui.sheet) renderSheet(true); render(); });
+    const p = db.payments.find(x => x.id === el.dataset.id); if (!p) return; db.payments = db.payments.filter(x => x !== p);
+    const sk = p.cash ? p.caseId + '|' + p.payDate : null; if (sk) { db.skipCash = db.skipCash || []; if (db.skipCash.indexOf(sk) < 0) db.skipCash.push(sk); }
+    save(); renderSheet(true); render();
+    toast('已取消這筆入帳', '復原', () => { if (sk) db.skipCash = (db.skipCash || []).filter(x => x !== sk); db.payments.push(p); save(); if (ui.sheet) renderSheet(true); render(); });
   },
   expjson: () => { db.settings.lastBackup = ymd(todayD()); save(); download('接案收入備份-' + ymd(todayD()) + '.json', backupText(), 'application/json'); },
   csvtpl: () => download('班表匯入範本.csv', '\uFEFF' + CSV_TEMPLATE, 'text/csv'),
@@ -2162,7 +2192,7 @@ document.addEventListener('change', e => {
   if (k === 'rt-name') { const r = db.settings.rates.find(x => x.id === el.dataset.id), v = el.value.trim(); if (r && v) { r.name = v; save(); } else if (r) el.value = r.name; return; }
   if (k === 'rt-mult') { const r = db.settings.rates.find(x => x.id === el.dataset.id), v = parseFloat(el.value); if (r && v > 0) { r.mult = Math.min(10, r2(v)); save(); } if (r) el.value = r.mult; return; }
   if (k === 'src-name') { const s = db.sources.find(x => x.id === el.dataset.id), v = el.value.trim(); if (s && v) { s.name = v; save(); } return; }
-  if (k === 'pay-amt') { const p = db.payments.find(x => x.id === el.dataset.id); if (p) { p.amount = numOf(el); save(); render(); toast('已更新入帳金額'); } return; }
+  if (k === 'pay-amt') { const p = db.payments.find(x => x.id === el.dataset.id); if (p) { p.amount = numOf(el); if (p.cash) p.manual = true; save(); render(); toast('已更新入帳金額'); } return; }
   if (k === 'csvfile') {
     const f = el.files && el.files[0]; if (!f) return; const r = new FileReader();
     r.onload = () => { bk = bk || {}; const p = csvPlan(String(r.result)); if (p.fatal) { bk.csvErr = p.fatal; bk.csv = null; } else { bk.csvErr = ''; bk.csv = p; } renderSheet(true); };
@@ -2243,7 +2273,9 @@ window.addEventListener('scroll', onScroll, { passive: true });
 document.addEventListener('click', e => { const i = e.target.closest('.tpick input'); if (i && i.showPicker) { try { i.showPicker(); } catch (x) {} } });
 function route() { const h = (location.hash || '').slice(1); ui.tab = ['home', 'cases', 'more'].indexOf(h) >= 0 ? h : 'home'; ui.jig = null; if (ui.sheet) { ui.sheet = null; $('#sheet').innerHTML = ''; document.body.classList.remove('has-sheet'); } render(); window.scrollTo(0, 0); if (h === 'guide') openGuide(0); else if (h === 'contact') openContact(); else if (h === 'privacy') openSheet('privacy'); }
 window.addEventListener('hashchange', route);
+try { if (syncCash()) save(); } catch (e) {}
 route();
+document.addEventListener('visibilitychange', function () { if (!document.hidden) { try { if (syncCash()) { save(); if (!ui.sheet) render(); } } catch (e) {} } });
 if (!ui.sheet && store && !guideSeen()) { markGuideSeen(); setTimeout(function () { if (!ui.sheet) openGuide(0); }, 450); }
 if (!store) toast('這個瀏覽器無法保存資料，關閉後會消失');
 
